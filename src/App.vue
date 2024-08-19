@@ -6,12 +6,11 @@ import NavBar from './components/NavBar.vue'
 <template>
   <div class="d-flex flex-column min-vh-100">
     <header>
-      <NavBar/>
+      <NavBar />
     </header>
-  
-    <RouterView class="flex-grow-1"/>
+
+    <RouterView class="flex-grow-1" />
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
