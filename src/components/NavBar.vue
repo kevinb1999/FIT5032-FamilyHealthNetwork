@@ -1,5 +1,13 @@
+<script setup>
+import ProfileButton from './ProfileButton.vue'
+import { ref } from 'vue'
+import { useUserStore } from '@/stores/userStore'
+
+const userStore = useUserStore()
+</script>
+
 <template>
-  <nav class="navbar navbar-expand-lg sticky-top bg-primary" data-bs-theme="dark">
+  <nav class="navbar navbar-expand-lg sticky-top custom-navbar">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">
         <img
@@ -42,12 +50,15 @@
           </li>
         </ul>
         <form class="form-inline my-2 my-lg-0">
-          <router-link to="/login" class="btn btn-outline-success my-2 my-sm-0 navbar-text">
+          <router-link v-if="!userStore.user" to="/login" class="btn btn-login navbar-text me-2">
             Login
           </router-link>
-          <router-link to="/signup" class="btn btn-outline-success my-2 my-sm-0 navbar-text">
-            SignUp
+          <router-link v-if="!userStore.user" to="/signup" class="btn btn-signup navbar-text">
+            Sign Up
           </router-link>
+          <div v-if="userStore.user" class="d-flex align-items-center">
+            <ProfileButton />
+          </div>
         </form>
       </div>
     </div>
@@ -55,3 +66,46 @@
 </template>
 
 <script setup></script>
+
+<style scoped>
+.custom-navbar {
+  background-color: #40e0d0;
+}
+.navbar-brand {
+  color: #003d34;
+}
+
+.navbar-nav .nav-link {
+  color: #003d34;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #fff;
+  background-color: #003d30;
+  border-radius: 5%;
+}
+
+.btn-login {
+  background-color: rgb(2, 109, 43);
+  border-color: #003d34;
+  color: #fff;
+}
+
+.btn-login:hover {
+  background-color: rgb(28, 57, 90);
+  border-color: #004d40;
+  color: #fff;
+}
+
+.btn-signup {
+  background-color: #003d30;
+  border-color: #003d34;
+  color: #fff;
+}
+
+.btn-signup:hover {
+  background-color: rgb(28, 57, 90);
+  color: #fff;
+  border-color: #003d34;
+}
+</style>

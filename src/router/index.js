@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import { auth } from '../firebaseConfig'
+import { useUserStore } from '@/stores/userStore'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,8 +25,14 @@ const router = createRouter({
       component: () => import('../views/LoginView.vue')
     },
     {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/ProfileView.vue')
+    },
+    {
       path: '/admin-dash',
       name: 'admin-dash',
+      meta: { requiresAdmin: true },
       component: () => import('../views/AdminDashboardView.vue')
     },
     {
@@ -57,10 +64,13 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
-  const isAuthenticated = auth.currentUser
-  if (requiresAuth && !isAuthenticated) {
-    next('/login')
+  const userStore = useUserStore()
+  if (to.meta.requiresAdmin && !userStore.isAdmin) {
+    next('/')
+  } else if (to.meta.requiresStaff && !userStore.isStaff) {
+    next('/')
+  } else if (to.meta.requiresPractitioner && !userStore.isPractitioner) {
+    next('/')
   } else {
     next()
   }

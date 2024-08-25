@@ -3,6 +3,10 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
 import { auth, googleProvider } from '../firebaseConfig'
+import { useUserStore } from '@/stores/userStore'
+import { users } from '@/repository/UserRepository'
+
+const userStore = useUserStore()
 
 const router = useRouter()
 const email = ref('')
@@ -14,6 +18,9 @@ const login = async () => {
     error.value = null
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
     console.log('Logged in:', userCredential.user)
+    const loggedInUser = users.value.find((user) => user.id === userCredential.user.uid)
+    userStore.setUser(loggedInUser)
+    localStorage.setItem('loggedInUser', JSON.stringify(userCredential.user))
     router.push('/') // Redirect to the home page after login
   } catch (err) {
     error.value = 'Login failed. Please check your credentials.'
@@ -26,6 +33,10 @@ const loginWithGoogle = async () => {
     error.value = null
     const result = await signInWithPopup(auth, googleProvider)
     console.log('Logged in with Google:', result.user)
+    loggedInUser = users.value.find((user) => user.id === result.user.uid)
+    userStore.setUser(loggedInUser)
+    localStorage.setItem('loggedInUser', result.user)
+
     router.push('/') // Redirect to the home page after login
   } catch (err) {
     error.value = 'Google sign-in failed. Please try again.'
