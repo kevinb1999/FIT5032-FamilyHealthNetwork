@@ -80,8 +80,8 @@ const signup = async () => {
     errors.value.overall = null
     const userCredential = await createUserWithEmailAndPassword(
       auth,
-      formData.value.email.value,
-      formData.value.password.value
+      formData.value.email,
+      formData.value.password
     )
     console.log('Signed up:', userCredential.user)
     const user = {
