@@ -33,20 +33,24 @@ const userStore = useUserStore()
       <div class="collapse navbar-collapse" id="navbarText">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <router-link class="nav-link" to="/education">Education</router-link>
+            <router-link class="nav-link" to="/education" active-class="active-nav-link"
+              >Education</router-link
+            >
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/locations-services"
+            <router-link class="nav-link" to="/locations-services" active-class="active-nav-link"
               >Locations and Services</router-link
             >
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/clinics-specialists"
+            <router-link class="nav-link" to="/clinics-specialists" active-class="active-nav-link"
               >Clinics and Specialists</router-link
             >
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/contact-us">Contact Us</router-link>
+            <router-link class="nav-link" to="/contact-us" active-class="active-nav-link"
+              >Contact Us</router-link
+            >
           </li>
         </ul>
         <form class="form-inline my-2 my-lg-0">
@@ -77,6 +81,12 @@ const userStore = useUserStore()
 
 .navbar-nav .nav-link {
   color: #003d34;
+}
+
+.navbar-nav .nav-link.active-nav-link {
+  color: #fff;
+  background-color: #005f50;
+  border-radius: 5%;
 }
 
 .navbar-nav .nav-link:hover {

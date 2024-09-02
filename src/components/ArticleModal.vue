@@ -1,16 +1,22 @@
 <script setup>
 import { ref } from 'vue'
+import { articles, addArticle } from '@/repository/ArticleRepository'
 
 const showModal = ref(false)
 const article = ref({
+  id: null,
   title: '',
-  author: '',
-  date: '',
-  content: ''
+  image: '',
+  description: '',
+  totalStarCount: 0,
+  totalReviewCount: 0,
+  redirectLink: '' // Add this property for the redirect link
 })
+const redirectToPage = ref(false) // Track the checkbox state
 
 function submitForm() {
-  // Handle form submission logic here
+  article.value.id = articles.value.length
+  addArticle(article.value)
   console.log('Article submitted:', article.value)
 
   // Close the modal after submission
@@ -18,11 +24,19 @@ function submitForm() {
 
   // Clear the form fields
   article.value = {
+    id: null,
     title: '',
-    author: '',
-    date: '',
-    content: ''
+    image: '',
+    description: '',
+    totalStarCount: 0,
+    totalReviewCount: 0,
+    redirectLink: ''
   }
+  redirectToPage.value = false
+}
+
+const handleFileUpload = () => {
+  // For now nothing
 }
 </script>
 
@@ -54,28 +68,38 @@ function submitForm() {
                 />
               </div>
               <div class="mb-3">
-                <label for="author" class="form-label">Author</label>
-                <input
-                  v-model="article.author"
-                  type="text"
-                  class="form-control"
-                  id="author"
-                  required
-                />
+                <label for="image" class="form-label">Article Thumbnail</label>
+                <input type="file" class="form-control" id="image" @change="handleFileUpload" />
               </div>
               <div class="mb-3">
-                <label for="date" class="form-label">Date</label>
-                <input v-model="article.date" type="date" class="form-control" id="date" required />
-              </div>
-              <div class="mb-3">
-                <label for="content" class="form-label">Content</label>
+                <label for="description" class="form-label">Description</label>
                 <textarea
-                  v-model="article.content"
+                  v-model="article.description"
                   class="form-control"
-                  id="content"
-                  rows="4"
+                  id="description"
+                  rows="3"
                   required
                 ></textarea>
+              </div>
+              <div class="mb-3 form-check">
+                <input
+                  v-model="redirectToPage"
+                  class="form-check-input"
+                  type="checkbox"
+                  id="redirectToPage"
+                />
+                <label class="form-check-label" for="redirectToPage">
+                  Redirect to article page
+                </label>
+              </div>
+              <div v-if="redirectToPage" class="mb-3">
+                <label for="redirectLink" class="form-label">Article Link</label>
+                <input
+                  v-model="article.redirectLink"
+                  type="url"
+                  class="form-control"
+                  id="redirectLink"
+                />
               </div>
               <button type="submit" class="btn btn-primary">Save Article</button>
             </form>

@@ -1,11 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import ArticleModal from './ArticleModal.vue'
-import { articles, loadArticles } from '@/repository/ArticleRepository.js'
+import { articles } from '@/repository/ArticleRepository.js'
 
 const showModal = ref(false)
-
-onMounted(() => loadArticles())
 </script>
 
 <template>
@@ -18,18 +16,26 @@ onMounted(() => loadArticles())
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th>#</th>
+          <th>ID</th>
           <th>Title</th>
-          <th>Author</th>
-          <th>Date</th>
+          <th>Description</th>
+          <th>Rating</th>
+          <th>Review Count</th>
+          <th>Redirect Link</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="article in articles" :key="article.id">
           <td>{{ article.id }}</td>
           <td>{{ article.title }}</td>
-          <td>{{ article.author }}</td>
-          <td>{{ article.date }}</td>
+          <td>{{ article.description }}</td>
+          <td>{{ Math.floor(article.totalStarCount / article.totalReviewCount) }}</td>
+          <td>{{ article.totalReviewCount }}</td>
+          <td>
+            <a :href="article.redirectLink" target="_blank">
+              {{ article.redirectLink }}
+            </a>
+          </td>
         </tr>
       </tbody>
     </table>

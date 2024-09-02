@@ -27,7 +27,7 @@ export const loadArticles = () => {
     // Load default articles if nothing is in local storage
     articles.value = [
       {
-        id: 1,
+        id: 0,
         title: 'Article 1',
         image: 'image1.jpg',
         description: 'Short description of article 1',
@@ -35,7 +35,7 @@ export const loadArticles = () => {
         totalReviewCount: 1
       },
       {
-        id: 2,
+        id: 1,
         title: 'Article 2',
         image: 'image2.jpg',
         description: 'Short description of article 2',

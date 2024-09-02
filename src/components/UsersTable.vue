@@ -1,8 +1,5 @@
 <script setup>
-import { users, loadUsers, deleteUser, editUser } from '@/repository/UserRepository.js'
-import { onMounted } from 'vue'
-
-onMounted(() => loadUsers())
+import { users, deleteUser, editUser } from '@/repository/UserRepository.js'
 
 // Method to handle user deletion
 const handleDeleteUser = (userId) => {

@@ -47,7 +47,7 @@ const loginWithGoogle = async () => {
 
 <template>
   <div class="d-flex justify-content-center align-items-center h-100 bg-light">
-    <div class="card p-4 shadow-sm" style="width: 100%; max-width: 400px">
+    <div class="card p-4 shadow-sm">
       <div class="card-body">
         <h2 class="card-title text-center mb-4">Login</h2>
         <form @submit.prevent="login">
@@ -88,4 +88,9 @@ const loginWithGoogle = async () => {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.card {
+  width: 100%;
+  max-width: 400px;
+}
+</style>

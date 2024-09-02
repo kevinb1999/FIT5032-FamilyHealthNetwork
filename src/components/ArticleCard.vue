@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { editArticle } from '@/repository/ArticleRepository'
+
+const props = defineProps({
   title: {
     type: String,
     required: true
@@ -15,34 +17,41 @@ defineProps({
   rating: {
     type: Number,
     required: true
+  },
+  id: {
+    type: Number,
+    required: true
+  },
+  totalReviewCount: {
+    type: Number,
+    required: true
+  },
+  totalStarCount: {
+    type: Number,
+    required: true
   }
 })
+
+const handleRating = (star) => {
+  const updatedArticle = {
+    id: props.id,
+    title: props.title,
+    image: props.image,
+    description: props.description,
+    totalStarCount: props.totalStarCount + star,
+    totalReviewCount: props.totalReviewCount + 1
+  }
+  editArticle(updatedArticle)
+}
 </script>
 
 <template>
-  <div
-    class="card"
-    style="width: 100%; border: 1px solid #007bff; box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)"
-  >
-    <div class="card-header text-white" style="background-color: #007bff">
+  <div class="card w-100 border border-primary">
+    <div class="card-header text-white bg-primary">
       <h5 class="card-title mb-0">{{ title }}</h5>
     </div>
-    <div
-      class="card-img-top"
-      style="
-        background-color: #000;
-        height: 100px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-      "
-    >
-      <!-- <img
-        :src="image"
-        alt="Article Image"
-        style="max-height: 100%; max-width: 100%; object-fit: cover"
-      /> -->
+    <div class="article-img">
+      <!-- <img :src="image" alt="Article Image" /> -->
     </div>
     <div class="card-body">
       <p class="card-text">
@@ -51,11 +60,28 @@ defineProps({
     </div>
     <div class="card-footer bg-light d-flex justify-content-start">
       <span class="text-warning">
-        <i class="fas fa-star" v-for="n in rating" :key="'filled-' + n"></i>
-        <i class="far fa-star" v-for="n in 5 - rating" :key="'empty-' + n"></i>
+        <button v-for="n in 5" :key="n" @click="handleRating(n)" class="btn btn-link p-0">
+          <i :class="n <= rating ? 'fas fa-star' : 'far fa-star'"></i>
+        </button>
       </span>
     </div>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.article-img {
+  background-color: #000;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+.fa-star {
+  color: gold;
+}
+
+.fa-star:hover {
+  background-color: darkgoldenrod;
+}
+</style>

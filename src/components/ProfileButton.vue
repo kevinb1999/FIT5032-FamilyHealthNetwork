@@ -1,8 +1,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useUserStore } from '@/stores/userStore'
+import { useRouter } from 'vue-router'
 
 const userStore = useUserStore()
+const router = useRouter()
 
 // Mock admin check. Replace this with your actual logic.
 const isAdmin = ref(true) // Set to false if the user is not an admin
@@ -10,6 +12,7 @@ const isAdmin = ref(true) // Set to false if the user is not an admin
 const handleLogOut = () => {
   userStore.clearUser()
   localStorage.removeItem('loggedInUser')
+  router.push('/login')
 }
 </script>
 

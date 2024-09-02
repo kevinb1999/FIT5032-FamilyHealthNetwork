@@ -32,12 +32,12 @@ export const loadUsers = () => {
         userType: 'admin'
       },
       {
-        id: '2',
+        id: 'jkKzzdoin2ast7cr8PLxFzs9dn72',
         email: 'staff@fhn.org',
         userType: 'staff'
       },
       {
-        id: '3',
+        id: 'AP2128lw0XPXgmyHlppGHWExY662',
         email: 'user@example.org',
         userType: 'user'
       }
