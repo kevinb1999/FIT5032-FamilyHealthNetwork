@@ -33,7 +33,7 @@ const loginWithGoogle = async () => {
     error.value = null
     const result = await signInWithPopup(auth, googleProvider)
     console.log('Logged in with Google:', result.user)
-    loggedInUser = users.value.find((user) => user.id === result.user.uid)
+    const loggedInUser = users.value.find((user) => user.id === result.user.uid)
     userStore.setUser(loggedInUser)
     localStorage.setItem('loggedInUser', result.user)
 

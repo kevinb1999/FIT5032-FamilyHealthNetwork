@@ -4,8 +4,10 @@ import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebaseConfig'
 import { useUserStore } from '@/stores/userStore'
 import { addUser } from '@/repository/UserRepository'
+import { useRouter } from 'vue-router'
 
 const userStore = useUserStore()
+const router = useRouter()
 
 const formData = ref({
   email: '',
@@ -22,7 +24,9 @@ const errors = ref({
 
 const validateEmail = () => {
   errors.value.email =
-    email.value && !email.value.includes('@') ? 'Please enter a valid email address.' : null
+    formData.value.email && !formData.value.email.includes('@')
+      ? 'Please enter a valid email address.'
+      : null
 }
 
 const validatePassword = (blur) => {
@@ -74,11 +78,15 @@ const signup = async () => {
 
   try {
     errors.value.overall = null
-    const userCredential = await createUserWithEmailAndPassword(auth, email.value, password.value)
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      formData.value.email.value,
+      formData.value.password.value
+    )
     console.log('Signed up:', userCredential.user)
     const user = {
-      id: firebaseUser.uid,
-      email: firebaseUser.email,
+      id: userCredential.user.uid,
+      email: userCredential.user.email,
       userType: 'staff'
     }
     addUser(user)

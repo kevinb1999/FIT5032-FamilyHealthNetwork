@@ -1,6 +1,5 @@
 <script setup>
 import ProfileButton from './ProfileButton.vue'
-import { ref } from 'vue'
 import { useUserStore } from '@/stores/userStore'
 
 const userStore = useUserStore()

@@ -1,6 +1,5 @@
-import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { users, loadUsers } from '@/repository/UserRepository'
+import { users } from '@/repository/UserRepository'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
