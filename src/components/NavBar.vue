@@ -11,10 +11,10 @@ const userStore = useUserStore()
       <a class="navbar-brand" href="/">
         <img
           alt="Vue logo"
-          class="d-inline-block align-top"
-          src="@/assets/logo.svg"
-          width="30"
-          height="30"
+          class="d-inline-block align-top me-2"
+          src="@/assets/logo.png"
+          width="34"
+          height="34"
         />
         <span class="ml-2">Family Health Network</span>
       </a>
