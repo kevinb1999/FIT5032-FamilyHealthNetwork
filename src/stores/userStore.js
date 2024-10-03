@@ -1,5 +1,23 @@
 import { defineStore } from 'pinia'
-import { users } from '@/repository/UserRepository'
+import { ref } from 'vue'
+
+const users = ref([
+  {
+    id: 'AP2128lw0XPXgmyHlppGHWExY662',
+    email: 'admin@fhn.org',
+    userType: 'admin'
+  },
+  {
+    id: 'jkKzzdoin2ast7cr8PLxFzs9dn72',
+    email: 'staff@fhn.org',
+    userType: 'staff'
+  },
+  {
+    id: 'AP2128lw0XPXgmyHlppGHWExY662',
+    email: 'user@example.org',
+    userType: 'user'
+  }
+])
 
 export const useUserStore = defineStore('user', {
   state: () => ({

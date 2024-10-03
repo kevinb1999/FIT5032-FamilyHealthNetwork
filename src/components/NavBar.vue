@@ -42,8 +42,13 @@ const userStore = useUserStore()
             >
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/clinics-specialists" active-class="active-nav-link"
-              >Clinics and Specialists</router-link
+            <router-link class="nav-link" to="/clinics" active-class="active-nav-link"
+              >Clinics</router-link
+            >
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/specialists" active-class="active-nav-link"
+              >Specialists</router-link
             >
           </li>
           <li class="nav-item">
@@ -72,7 +77,7 @@ const userStore = useUserStore()
 
 <style scoped>
 .custom-navbar {
-  background-color: #40e0d0;
+  background-color: rgb(62, 224, 207);
 }
 .navbar-brand {
   color: #003d34;

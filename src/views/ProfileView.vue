@@ -1,8 +1,10 @@
-<script setup></script>
+<script setup>
+import UserDetails from '@/components/UserDetails.vue'
+</script>
 
 <template>
-  <div class="container m-5">
-    <h1>Page Under Contruction</h1>
+  <div class="container m-12">
+    <UserDetails />
   </div>
 </template>
 

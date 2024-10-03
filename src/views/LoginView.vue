@@ -2,9 +2,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
-import { auth, googleProvider } from '../firebaseConfig'
+import { auth, googleProvider } from '@/firebase/init'
 import { useUserStore } from '@/stores/userStore'
-import { users } from '@/repository/UserRepository'
 
 const userStore = useUserStore()
 
@@ -82,6 +81,9 @@ const loginWithGoogle = async () => {
           <button @click="loginWithGoogle" class="btn btn-outline-primary">
             Sign in with Google
           </button>
+        </div>
+        <div class="text-center mt-5">
+          <a href="/signup" class="btn btn-outline-primary"> Sign Up </a>
         </div>
       </div>
     </div>

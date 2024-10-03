@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../firebaseConfig'
+import { auth } from '@/firebase/init'
 import { useUserStore } from '@/stores/userStore'
 import { addUser } from '@/repository/UserRepository'
 import { useRouter } from 'vue-router'
@@ -91,7 +91,7 @@ const signup = async () => {
     }
     addUser(user)
     userStore.setUser(userCredential.user)
-    router.push('/') // Redirect to the home page after sign up
+    router.push('/signup/moreinfo')
   } catch (err) {
     if (err.code === 'auth/email-already-in-use') {
       errors.value.overall =

@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import ArticleTable from '../components/ArticleTable.vue'
+import EventTable from '@/components/EventTable.vue'
+import ClinicTable from '@/components/ClinicTable.vue'
 import UsersTable from '../components/UsersTable.vue'
 import SiteSettings from '@/components/SiteSettings.vue'
 
@@ -21,6 +23,12 @@ function showComponent(componentName) {
           <button class="nav-link" @click="showComponent('ArticleTable')">Articles</button>
         </li>
         <li class="nav-item">
+          <button class="nav-link" @click="showComponent('EventTable')">Events</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" @click="showComponent('ClinicTable')">Clinics</button>
+        </li>
+        <li class="nav-item">
           <button class="nav-link" @click="showComponent('UsersTable')">Users</button>
         </li>
         <li class="nav-item">
@@ -32,6 +40,8 @@ function showComponent(componentName) {
     <!-- Main Content Area -->
     <div class="main-content p-3 flex-grow-1 container">
       <ArticleTable v-if="currentComponent === 'ArticleTable'" />
+      <EventTable v-if="currentComponent === 'EventTable'" />
+      <ClinicTable v-if="currentComponent === 'ClinicTable'" />
       <UsersTable v-if="currentComponent === 'UsersTable'" />
       <SiteSettings v-if="currentComponent === 'SiteSettings'" />
     </div>
