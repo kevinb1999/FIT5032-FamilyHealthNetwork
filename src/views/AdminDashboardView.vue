@@ -1,10 +1,12 @@
 <script setup>
 import { ref } from 'vue'
-import ArticleTable from '../components/ArticleTable.vue'
-import EventTable from '@/components/EventTable.vue'
-import ClinicTable from '@/components/ClinicTable.vue'
-import UsersTable from '../components/UsersTable.vue'
-import SiteSettings from '@/components/SiteSettings.vue'
+import ArticleTable from '@/components/Education/ArticleTable.vue'
+import EventTable from '@/components/Education/EventTable.vue'
+import ClinicTable from '@/components/Clinics/ClinicTable.vue'
+import UsersTable from '@/components/Users/UsersTable.vue'
+import ArticleModal from '@/components/Education/ArticleModal.vue'
+import EventModal from '@/components/Education/EventModal.vue'
+import ClinicModal from '@/components/Clinics/ClinicModal.vue'
 
 const currentComponent = ref('ArticleTable')
 
@@ -20,30 +22,53 @@ function showComponent(componentName) {
       <h4>Admin Dashboard</h4>
       <ul class="nav flex-column">
         <li class="nav-item">
-          <button class="nav-link" @click="showComponent('ArticleTable')">Articles</button>
+          <button
+            class="nav-link"
+            :class="{ active: currentComponent === 'ArticleTable' }"
+            @click="showComponent('ArticleTable')"
+          >
+            Articles
+          </button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" @click="showComponent('EventTable')">Events</button>
+          <button
+            class="nav-link"
+            :class="{ active: currentComponent === 'EventTable' }"
+            @click="showComponent('EventTable')"
+          >
+            Events
+          </button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" @click="showComponent('ClinicTable')">Clinics</button>
+          <button
+            class="nav-link"
+            :class="{ active: currentComponent === 'ClinicTable' }"
+            @click="showComponent('ClinicTable')"
+          >
+            Clinics
+          </button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" @click="showComponent('UsersTable')">Users</button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" @click="showComponent('SiteSettings')">Site Settings</button>
+          <button
+            class="nav-link"
+            :class="{ active: currentComponent === 'UsersTable' }"
+            @click="showComponent('UsersTable')"
+          >
+            Users
+          </button>
         </li>
       </ul>
     </div>
 
     <!-- Main Content Area -->
     <div class="main-content p-3 flex-grow-1 container">
+      <ArticleModal class="mb-3" v-if="currentComponent === 'ArticleTable'" />
       <ArticleTable v-if="currentComponent === 'ArticleTable'" />
+      <EventModal class="mb-3" v-if="currentComponent === 'EventTable'" />
       <EventTable v-if="currentComponent === 'EventTable'" />
+      <ClinicModal class="mb-3" v-if="currentComponent === 'ClinicTable'" />
       <ClinicTable v-if="currentComponent === 'ClinicTable'" />
       <UsersTable v-if="currentComponent === 'UsersTable'" />
-      <SiteSettings v-if="currentComponent === 'SiteSettings'" />
     </div>
   </div>
 </template>
@@ -63,10 +88,19 @@ function showComponent(componentName) {
 }
 
 .nav-link {
-  cursor: pointer;
+  background-color: #f8f9fa;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  text-align: left;
+}
+
+.nav-link:hover {
+  background-color: #e9ecef;
 }
 
 .nav-link.active {
-  background-color: #e9ecef;
+  background-color: #dee2e6;
+  font-weight: bold;
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getSpecialists, deleteUser } from '@/repository/UserRepository' // Import deleteUser method
+import { getUsers, deleteUser } from '@/repository/UserRepository' // Import deleteUser method
 import { getAuth, deleteUser as deleteAuthUser } from 'firebase/auth'
 
 const users = ref([])
@@ -16,7 +16,7 @@ const sortOrder = ref(1)
 const fetchUsers = async (page = 0, rows = 10, sortField = '', sortOrder = 1) => {
   try {
     loading.value = true
-    const response = await getSpecialists(page, rows, sortField, sortOrder) // Update to use the repository
+    const response = await getUsers(page, rows, sortField, sortOrder) // Update to use the repository
     users.value = response.data // Assign the fetched user data
     totalRecords.value = response.total // Assign the total number of records
     loading.value = false
@@ -40,10 +40,31 @@ const onPage = (event) => {
 const onSort = (event) => {
   fetchUsers(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder)
 }
+
+// Delete a user from Firestore and Firebase Auth
+const handleDeleteUser = async (userId, authUid) => {
+  try {
+    // Delete the user from Firestore
+    await deleteUser(userId)
+
+    // Delete the user from Firebase Authentication
+    const userToDelete = auth.currentUser // Assuming admin rights
+    if (userToDelete && userToDelete.uid === authUid) {
+      await deleteAuthUser(userToDelete)
+    }
+
+    // Refetch users after deletion
+    fetchUsers(currentPage.value, rowsPerPage.value)
+
+    console.log(`User ${userId} deleted successfully`)
+  } catch (err) {
+    console.error('Error deleting user:', err)
+  }
+}
 </script>
 
 <template>
-  <div class="container m-5">
+  <div>
     <!-- User Data Table -->
     <DataTable
       :value="users"
@@ -59,6 +80,7 @@ const onSort = (event) => {
       :filters="filters"
     >
       <!-- Columns with built-in filters -->
+      <Column field="email" header="Email" sortable filter filterPlaceholder="Search by email" />
       <Column
         field="firstName"
         header="First Name"
@@ -73,8 +95,6 @@ const onSort = (event) => {
         filter
         filterPlaceholder="Search by last name"
       />
-      <Column field="about" header="About" sortable filter filterPlaceholder="Search by location" />
-      <Column field="email" header="Email" sortable filter filterPlaceholder="Search by email" />
       <Column
         field="phoneNumber"
         header="Phone Number"
@@ -82,13 +102,18 @@ const onSort = (event) => {
         filter
         filterPlaceholder="Search by phone number"
       />
-      <Column
-        field="location"
-        header="Location"
-        sortable
-        filter
-        filterPlaceholder="Search by location"
-      />
+
+      <!-- Delete Action Column -->
+      <Column header="Actions" bodyClass="text-center">
+        <template #body="slotProps">
+          <Button
+            label="Delete"
+            icon="pi pi-trash"
+            class="p-button-danger"
+            @click="handleDeleteUser(slotProps.data.id, slotProps.data.authUid)"
+          />
+        </template>
+      </Column>
     </DataTable>
   </div>
 </template>
@@ -96,9 +121,5 @@ const onSort = (event) => {
 <style scoped>
 .text-center {
   text-align: center;
-}
-
-.container {
-  align-self: center;
 }
 </style>

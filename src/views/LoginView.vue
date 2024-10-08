@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router'
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
 import { auth, googleProvider } from '@/firebase/init'
 import { useUserStore } from '@/stores/userStore'
+import { getUser } from '@/repository/UserRepository' // Import the function to fetch users from Firestore
 
 const userStore = useUserStore()
-
 const router = useRouter()
 const email = ref('')
 const password = ref('')
@@ -15,12 +15,25 @@ const error = ref(null)
 const login = async () => {
   try {
     error.value = null
+    // Sign in with email and password
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
-    console.log('Logged in:', userCredential.user)
-    const loggedInUser = users.value.find((user) => user.id === userCredential.user.uid)
-    userStore.setUser(loggedInUser)
-    localStorage.setItem('loggedInUser', JSON.stringify(userCredential.user))
-    router.push('/') // Redirect to the home page after login
+    const firebaseUser = userCredential.user
+
+    // Fetch the user data from Firestore using the Firebase UID
+    const loggedInUser = await getUser(firebaseUser.uid)
+
+    if (loggedInUser) {
+      // Save the user in the Pinia store
+      userStore.setUser(loggedInUser)
+
+      // Save user data in localStorage
+      localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser))
+
+      // Redirect to the home page
+      router.push('/')
+    } else {
+      error.value = 'User not found in Firestore.'
+    }
   } catch (err) {
     error.value = 'Login failed. Please check your credentials.'
     console.error(err)
@@ -30,13 +43,25 @@ const login = async () => {
 const loginWithGoogle = async () => {
   try {
     error.value = null
+    // Sign in with Google
     const result = await signInWithPopup(auth, googleProvider)
-    console.log('Logged in with Google:', result.user)
-    const loggedInUser = users.value.find((user) => user.id === result.user.uid)
-    userStore.setUser(loggedInUser)
-    localStorage.setItem('loggedInUser', result.user)
+    const firebaseUser = result.user
 
-    router.push('/') // Redirect to the home page after login
+    // Fetch the user data from Firestore using the Firebase UID
+    const loggedInUser = await getUser(firebaseUser.uid)
+
+    if (loggedInUser) {
+      // Save the user in the Pinia store
+      userStore.setUser(loggedInUser)
+
+      // Save user data in localStorage
+      localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser))
+
+      // Redirect to the home page
+      router.push('/')
+    } else {
+      error.value = 'User not found in Firestore.'
+    }
   } catch (err) {
     error.value = 'Google sign-in failed. Please try again.'
     console.error(err)

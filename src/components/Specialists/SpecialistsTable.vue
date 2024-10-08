@@ -1,52 +1,51 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getSpecialists, deleteUser } from '@/repository/UserRepository' // Import deleteUser method
-import { getAuth, deleteUser as deleteAuthUser } from 'firebase/auth'
+import { DataTable, Column } from 'primevue'
+import { getSpecialists } from '@/repository/UserRepository' // Import the getSpecialists method
 
-const users = ref([])
+const specialists = ref([])
 const loading = ref(false)
 const totalRecords = ref(0)
 const rowsPerPage = ref(10) // Number of rows per page
 const currentPage = ref(0) // Current page number
-const auth = getAuth() // Firebase Auth
-const sortField = ref('')
-const sortOrder = ref(1)
 
-// Fetch users from the repository with pagination and sorting
-const fetchUsers = async (page = 0, rows = 10, sortField = '', sortOrder = 1) => {
+// Fetch specialists from the repository with pagination and sorting
+const fetchSpecialists = async (page = 0, rows = 10, sortField = '', sortOrder = 1) => {
   try {
     loading.value = true
-    const response = await getSpecialists(page, rows, sortField, sortOrder) // Update to use the repository
-    users.value = response.data // Assign the fetched user data
+    const response = await getSpecialists(page, rows, sortField, sortOrder) // Call the repository method
+    specialists.value = response.data // Assign the fetched specialist data
     totalRecords.value = response.total // Assign the total number of records
     loading.value = false
   } catch (err) {
-    console.error('Error fetching users:', err)
+    console.error('Error fetching specialists:', err)
     loading.value = false
   }
 }
 
 onMounted(() => {
-  fetchUsers() // Fetch users on mount
+  fetchSpecialists() // Fetch specialists on mount
 })
 
 // Handle pagination events
 const onPage = (event) => {
   currentPage.value = event.page
-  fetchUsers(event.page, event.rows, event.sortField, event.sortOrder)
+  fetchSpecialists(event.page, event.rows, event.sortField, event.sortOrder)
 }
 
 // Handle sorting events
 const onSort = (event) => {
-  fetchUsers(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder)
+  fetchSpecialists(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder)
 }
 </script>
 
 <template>
-  <div class="container m-5">
-    <!-- User Data Table -->
+  <div>
+    <h2 class="text-center">Specialists List</h2>
+
+    <!-- Specialists Data Table -->
     <DataTable
-      :value="users"
+      :value="specialists"
       :loading="loading"
       :rows="rowsPerPage"
       :paginator="true"
@@ -56,7 +55,6 @@ const onSort = (event) => {
       @sort="onSort"
       :sortField="sortField"
       :sortOrder="sortOrder"
-      :filters="filters"
     >
       <!-- Columns with built-in filters -->
       <Column
@@ -73,7 +71,6 @@ const onSort = (event) => {
         filter
         filterPlaceholder="Search by last name"
       />
-      <Column field="about" header="About" sortable filter filterPlaceholder="Search by location" />
       <Column field="email" header="Email" sortable filter filterPlaceholder="Search by email" />
       <Column
         field="phoneNumber"
@@ -96,9 +93,5 @@ const onSort = (event) => {
 <style scoped>
 .text-center {
   text-align: center;
-}
-
-.container {
-  align-self: center;
 }
 </style>

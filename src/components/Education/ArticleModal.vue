@@ -1,42 +1,78 @@
 <script setup>
 import { ref } from 'vue'
-import { articles, addArticle } from '@/repository/ArticleRepository'
+import { saveArticle } from '@/repository/ArticleRepository'
+import { getFirestore, collection, doc } from 'firebase/firestore'
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
+
+const db = getFirestore()
+const storage = getStorage()
 
 const showModal = ref(false)
 const article = ref({
   id: null,
   title: '',
   image: '',
-  description: '',
+  imageUrl: '', // Store image URL after upload
+  content: '',
   totalStarCount: 0,
   totalReviewCount: 0,
-  redirectLink: '' // Add this property for the redirect link
+  redirectLink: ''
 })
 const redirectToPage = ref(false) // Track the checkbox state
+const imageFile = ref(null) // Track the file input
 
-function submitForm() {
-  article.value.id = articles.value.length
-  addArticle(article.value)
-  console.log('Article submitted:', article.value)
-
-  // Close the modal after submission
-  showModal.value = false
-
-  // Clear the form fields
-  article.value = {
-    id: null,
-    title: '',
-    image: '',
-    description: '',
-    totalStarCount: 0,
-    totalReviewCount: 0,
-    redirectLink: ''
-  }
-  redirectToPage.value = false
+// Handle file uploads
+const handleFileUpload = (event) => {
+  imageFile.value = event.target.files[0] // Get the uploaded file
 }
 
-const handleFileUpload = () => {
-  // For now nothing
+const uploadImageAndGetUrl = async () => {
+  if (imageFile.value) {
+    const storageReference = storageRef(
+      storage,
+      `articles/${article.value.id}/${imageFile.value.name}`
+    )
+    await uploadBytes(storageReference, imageFile.value)
+    const imageUrl = await getDownloadURL(storageReference)
+    return imageUrl
+  }
+  return null
+}
+
+const submitForm = async () => {
+  try {
+    // Generate a unique ID for the article
+    const articleRef = doc(collection(db, 'articles'))
+    article.value.id = articleRef.id
+
+    // Upload the image and get the URL
+    const imageUrl = await uploadImageAndGetUrl()
+    article.value.imageUrl = imageUrl
+
+    // Save the article in Firestore
+    await saveArticle(article.value)
+
+    console.log('Article submitted:', article.value)
+
+    // Close the modal after submission
+    showModal.value = false
+
+    // Clear the form fields
+    article.value = {
+      id: null,
+      title: '',
+      image: '',
+      imageUrl: '',
+      content: '',
+      totalStarCount: 0,
+      totalReviewCount: 0,
+      redirectLink: ''
+    }
+    imageFile.value = null
+    redirectToPage.value = false
+  } catch (error) {
+    console.error('Error submitting article:', error)
+  }
 }
 </script>
 
@@ -72,11 +108,11 @@ const handleFileUpload = () => {
                 <input type="file" class="form-control" id="image" @change="handleFileUpload" />
               </div>
               <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
+                <label for="content" class="form-label">Content</label>
                 <textarea
-                  v-model="article.description"
+                  v-model="article.content"
                   class="form-control"
-                  id="description"
+                  id="content"
                   rows="3"
                   required
                 ></textarea>

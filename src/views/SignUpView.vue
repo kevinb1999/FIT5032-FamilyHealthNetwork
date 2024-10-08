@@ -3,8 +3,9 @@ import { ref, computed } from 'vue'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/firebase/init'
 import { useUserStore } from '@/stores/userStore'
-import { addUser } from '@/repository/UserRepository'
+import { saveUser } from '@/repository/UserRepository' // Corrected function name
 import { useRouter } from 'vue-router'
+import { User } from '@/models/User' // Import the User model
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -22,14 +23,19 @@ const errors = ref({
   overall: null
 })
 
+// Email validation
 const validateEmail = () => {
-  errors.value.email =
-    formData.value.email && !formData.value.email.includes('@')
-      ? 'Please enter a valid email address.'
-      : null
+  if (!formData.value.email) {
+    errors.value.email = 'Email is required.'
+  } else if (!formData.value.email.includes('@')) {
+    errors.value.email = 'Please enter a valid email address.'
+  } else {
+    errors.value.email = null
+  }
 }
 
-const validatePassword = (blur) => {
+// Password validation
+const validatePassword = () => {
   const password = formData.value.password
   const minLength = 8
   const hasUppercase = /[A-Z]/.test(password)
@@ -37,39 +43,44 @@ const validatePassword = (blur) => {
   const hasNumber = /\d/.test(password)
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password)
 
-  if (password.length < minLength) {
-    if (blur) errors.value.password = `Password must be at least ${minLength} characters long.`
+  if (!password) {
+    errors.value.password = 'Password is required.'
+  } else if (password.length < minLength) {
+    errors.value.password = `Password must be at least ${minLength} characters long.`
   } else if (!hasUppercase) {
-    if (blur) errors.value.password = 'Password must contain at least one uppercase letter.'
+    errors.value.password = 'Password must contain at least one uppercase letter.'
   } else if (!hasLowercase) {
-    if (blur) errors.value.password = 'Password must contain at least one lowercase letter.'
+    errors.value.password = 'Password must contain at least one lowercase letter.'
   } else if (!hasNumber) {
-    if (blur) errors.value.password = 'Password must contain at least one number.'
+    errors.value.password = 'Password must contain at least one number.'
   } else if (!hasSpecialChar) {
-    if (blur) errors.value.password = 'Password must contain at least one special character.'
+    errors.value.password = 'Password must contain at least one special character.'
   } else {
     errors.value.password = null
   }
 }
 
-const validateConfirmPassword = (blur) => {
-  if (formData.value.password !== formData.value.confirmPassword) {
-    if (blur) errors.value.confirmPassword = 'Passwords do not match.'
+// Confirm Password validation
+const validateConfirmPassword = () => {
+  if (formData.value.confirmPassword !== formData.value.password) {
+    errors.value.confirmPassword = 'Passwords do not match.'
   } else {
     errors.value.confirmPassword = null
   }
 }
 
+// Check if the form is valid
 const isFormValid = computed(
   () =>
-    errors.value.email === null &&
-    errors.value.password === null &&
-    errors.value.confirmPassword === null &&
+    !errors.value.email &&
+    !errors.value.password &&
+    !errors.value.confirmPassword &&
     formData.value.email &&
     formData.value.password &&
     formData.value.confirmPassword
 )
 
+// Signup function
 const signup = async () => {
   if (!isFormValid.value) {
     errors.value.overall = 'Please correct the errors in the form before submitting.'
@@ -84,13 +95,27 @@ const signup = async () => {
       formData.value.password
     )
     console.log('Signed up:', userCredential.user)
-    const user = {
-      id: userCredential.user.uid,
-      email: userCredential.user.email,
-      userType: 'staff'
-    }
-    addUser(user)
-    userStore.setUser(userCredential.user)
+
+    // Create a new user object based on your User model
+    const newUser = new User(
+      userCredential.user.uid,
+      userCredential.user.email,
+      'user', // userType default to 'user'
+      '', // firstName, can be updated later
+      '', // lastName, can be updated later
+      '', // phoneNumber
+      false, // isSubscribed to newsletter
+      '', // location
+      '' // about information
+    )
+
+    // Save the user to Firestore
+    await saveUser(newUser)
+
+    // Set the user in the Pinia store
+    userStore.setUser(newUser)
+
+    // Redirect to profile completion page
     router.push('/signup/moreinfo')
   } catch (err) {
     if (err.code === 'auth/email-already-in-use') {
