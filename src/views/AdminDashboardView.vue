@@ -7,6 +7,7 @@ import UsersTable from '@/components/Users/UsersTable.vue'
 import ArticleModal from '@/components/Education/ArticleModal.vue'
 import EventModal from '@/components/Education/EventModal.vue'
 import ClinicModal from '@/components/Clinics/ClinicModal.vue'
+import ExportData from '@/components/ExportData.vue'
 
 const currentComponent = ref('ArticleTable')
 
@@ -57,6 +58,15 @@ function showComponent(componentName) {
             Users
           </button>
         </li>
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            :class="{ active: currentComponent === 'ExportData' }"
+            @click="showComponent('ExportData')"
+          >
+            Export Data
+          </button>
+        </li>
       </ul>
     </div>
 
@@ -69,6 +79,7 @@ function showComponent(componentName) {
       <ClinicModal class="mb-3" v-if="currentComponent === 'ClinicTable'" />
       <ClinicTable v-if="currentComponent === 'ClinicTable'" />
       <UsersTable v-if="currentComponent === 'UsersTable'" />
+      <ExportData v-if="currentComponent === 'ExportData'" />
     </div>
   </div>
 </template>
