@@ -1,7 +1,7 @@
 <script setup>
-import { editArticle } from '@/repository/ArticleRepository'
+import { updateArticle } from '@/repository/ArticleRepository'
 import Rating from 'primevue/rating'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   title: {
@@ -21,7 +21,7 @@ const props = defineProps({
     required: true
   },
   id: {
-    type: Number,
+    type: String,
     required: true
   },
   totalReviewCount: {
@@ -34,18 +34,32 @@ const props = defineProps({
   }
 })
 
-const value = ref(props.rating)
+const value = ref(0) // Ref to hold the selected star value
 
-const handleRating = (star) => {
+// Compute the average rating based on total stars and reviews
+const averageRating = computed(() => {
+  return props.totalReviewCount === 0 ? 0 : (props.totalStarCount / props.totalReviewCount).toFixed(1)
+})
+
+// Function to handle rating selection
+const handleRating = async (star) => {
+  value.value = star
   const updatedArticle = {
     id: props.id,
     title: props.title,
     image: props.image,
-    description: props.description,
+    content: props.description,
     totalStarCount: props.totalStarCount + star,
-    totalReviewCount: props.totalReviewCount + 1
+    totalReviewCount: props.totalReviewCount + 1,
+    userReviewArr: [] // Optional: Add user review array if necessary
   }
-  editArticle(updatedArticle)
+
+  try {
+    await updateArticle(updatedArticle) // Use updateArticle from repository
+    console.log('Article updated successfully.')
+  } catch (error) {
+    console.error('Error updating article:', error)
+  }
 }
 </script>
 
@@ -55,38 +69,39 @@ const handleRating = (star) => {
       <h5 class="card-title mb-0">{{ title }}</h5>
     </div>
     <div class="article-img">
-      <!-- <img :src="image" alt="Article Image" /> -->
+      <img v-if="image" :src="image" alt="Article Image" class="img-fluid" />
+      <div v-else class="no-image">No Image Available</div>
     </div>
     <div class="card-body">
       <p class="card-text">
         {{ description }}
       </p>
     </div>
-    <div class="card-footer bg-light d-flex justify-content-start">
-      <Rating v-model="value" />
-      <span class="text-warning">
-        <button v-for="n in 5" :key="n" @click="handleRating(n)" class="btn btn-link p-0">
-          <i :class="n <= rating ? 'fas fa-star' : 'far fa-star'"></i>
-        </button>
-      </span>
+    <div class="card-footer bg-light d-flex justify-content-start align-items-center">
+      <Rating v-model="value" :stars="5" @rate="handleRating(value)" />
+      <span class="ms-3">Average: {{ averageRating }}</span>
     </div>
   </div>
 </template>
 
 <style scoped>
 .article-img {
-  background-color: #000;
-  height: 100px;
+  background-color: #f8f9fa;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-}
-.fa-star {
-  color: gold;
+  color: #6c757d;
 }
 
-.fa-star:hover {
-  background-color: darkgoldenrod;
+.img-fluid {
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.no-image {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 </style>

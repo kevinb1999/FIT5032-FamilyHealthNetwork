@@ -4,7 +4,7 @@ import ClinicTable from '@/components/Clinics/ClinicTable.vue'
 
 <template>
   <div class="container m-5">
-    <ClinicTable />
+    <ClinicTable publicView />
   </div>
 </template>
 

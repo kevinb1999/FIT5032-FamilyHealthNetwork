@@ -50,7 +50,15 @@ const submitForm = async () => {
     article.value.imageUrl = imageUrl
 
     // Save the article in Firestore
-    await saveArticle(article.value)
+    await saveArticle({
+      id: articleRef.id,
+      title: article.value.title,
+      image: imageUrl,
+      content: article.value.content,
+      totalReviewCount: 0,
+      userReviewArr: [],
+      redirectLink: article.value.redirectLink
+    })
 
     console.log('Article submitted:', article.value)
 

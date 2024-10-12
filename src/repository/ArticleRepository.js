@@ -17,6 +17,28 @@ const db = getFirestore()
 
 const articlesCollection = collection(db, 'articles') // Collection for articles
 
+export const getArticleCards = async (page = 0, rows = 10) => {
+  try {
+    let q = query(articlesCollection, limit(rows), startAt(page * rows))
+
+    // Execute the query
+    const snapshot = await getDocs(q)
+
+    const articles = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+
+    return {
+      data: articles,
+      total: snapshot.size // Total number of records
+    }
+  } catch (error) {
+    console.error('Error fetching articles:', error)
+    throw error
+  }
+}
+
 export const getArticles = async (
   page = 0,
   rows = 10,
@@ -69,7 +91,7 @@ export const getArticles = async (
 // Add or update an article in Firestore
 export const saveArticle = async (article) => {
   try {
-    const articleRef = doc(articlesCollection, article.id) // Reference to article document
+    const articleRef = doc(db, 'articles' , article.id) // Reference to article document
     await setDoc(articleRef, {
       title: article.title,
       image: article.image,

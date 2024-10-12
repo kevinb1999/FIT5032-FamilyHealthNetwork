@@ -1,5 +1,5 @@
 <script setup>
-import UserDetails from '@/components/UserDetails.vue'
+import UserDetails from '@/components/Users/UserDetails.vue'
 </script>
 
 <template>

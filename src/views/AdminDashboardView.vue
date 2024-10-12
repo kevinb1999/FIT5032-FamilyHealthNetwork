@@ -8,6 +8,8 @@ import ArticleModal from '@/components/Education/ArticleModal.vue'
 import EventModal from '@/components/Education/EventModal.vue'
 import ClinicModal from '@/components/Clinics/ClinicModal.vue'
 import ExportData from '@/components/ExportData.vue'
+import NewsletterModal from '@/components/Newsletter/NewsletterModal.vue'
+import NewsletterTable from '@/components/Newsletter/NewsletterTable.vue'
 
 const currentComponent = ref('ArticleTable')
 
@@ -59,6 +61,9 @@ function showComponent(componentName) {
           </button>
         </li>
         <li class="nav-item">
+          <button class="nav-link" :class="{ active: currentComponent === 'NewsletterTable' }" @click="showComponent('NewsletterTable')">Newsletters</button>
+        </li>
+        <li class="nav-item">
           <button
             class="nav-link"
             :class="{ active: currentComponent === 'ExportData' }"
@@ -79,6 +84,8 @@ function showComponent(componentName) {
       <ClinicModal class="mb-3" v-if="currentComponent === 'ClinicTable'" />
       <ClinicTable v-if="currentComponent === 'ClinicTable'" />
       <UsersTable v-if="currentComponent === 'UsersTable'" />
+      <NewsletterModal class="mb-3" v-if="currentComponent === 'NewsletterTable'" />
+      <NewsletterTable v-if="currentComponent === 'NewsletterTable'" />
       <ExportData v-if="currentComponent === 'ExportData'" />
     </div>
   </div>

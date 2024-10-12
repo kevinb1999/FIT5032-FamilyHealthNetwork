@@ -52,8 +52,8 @@ const userStore = useUserStore()
             >
           </li>
         </ul>
-        <form class="form-inline my-2 my-lg-0">
-          <router-link v-if="!userStore.user" to="/login" class="btn btn-login navbar-text me-2">
+        <form class="userActions form-inline my-2 my-lg-0">
+          <router-link v-if="!userStore.user" to="/login" class="btn btn-login navbar-text mr-2">
             Login
           </router-link>
           <router-link v-if="!userStore.user" to="/signup" class="btn btn-signup navbar-text">
@@ -73,6 +73,10 @@ const userStore = useUserStore()
 <style scoped>
 .custom-navbar {
   background-color: rgb(62, 224, 207);
+}
+
+#navbarText {
+  justify-content: space-between;
 }
 .navbar-brand {
   color: #003d34;

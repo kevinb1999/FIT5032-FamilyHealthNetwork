@@ -1,6 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getEvents } from '@/repository/EventRepository' // Import the getEvents method
+import { getEvents, deleteEvent } from '@/repository/EventRepository' // Import the deleteEvent method
+import EventModal from './EventModal.vue' // Assuming there's a modal to edit events
+
+// Define props
+const props = defineProps({
+  publicView: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const events = ref([])
 const loading = ref(false)
@@ -9,6 +18,9 @@ const rowsPerPage = ref(10) // Number of rows per page
 const currentPage = ref(0) // Current page number
 const sortField = ref('')
 const sortOrder = ref(1)
+
+const showModal = ref(false) // For controlling the event modal
+const selectedEvent = ref(null) // Store the selected event for editing
 
 // Fetch events from the repository with pagination and sorting
 const fetchEvents = async (page = 0, rows = 10, sortField = '', sortOrder = 1) => {
@@ -38,7 +50,18 @@ const onPage = (event) => {
 const onSort = (event) => {
   fetchEvents(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder)
 }
+
+// Handle deleting an event
+const handleDeleteEvent = async (eventId) => {
+  try {
+    await deleteEvent(eventId) // Call the delete method from the repository
+    fetchEvents(currentPage.value, rowsPerPage.value) // Refresh the events after deletion
+  } catch (error) {
+    console.error('Error deleting event:', error)
+  }
+}
 </script>
+
 
 <template>
   <div>
@@ -86,20 +109,27 @@ const onSort = (event) => {
         filterPlaceholder="Search by description"
       />
 
-      <!-- Delete Action Column -->
-      <Column header="Actions" bodyClass="text-center">
+      <!-- Conditionally show the Actions column if not public view -->
+      <Column v-if="!publicView" header="Actions" bodyClass="text-center">
         <template #body="slotProps">
           <Button
             label="Delete"
             icon="pi pi-trash"
             class="p-button-danger"
-            @click="handleDeleteUser(slotProps.data.id, slotProps.data.authUid)"
+            @click="handleDeleteEvent(slotProps.data.id)"
           />
         </template>
       </Column>
     </DataTable>
   </div>
 </template>
+
+<style scoped>
+.text-center {
+  text-align: center;
+}
+</style>
+
 
 <style scoped>
 .text-center {

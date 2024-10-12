@@ -51,7 +51,7 @@
   
     try {
       const response = await axios.get(
-        'cloud-funtion url', 
+        'http://localhost:5001/your-project-id/us-central1/exportData', 
         { params, responseType: 'blob' } // `blob` for downloading files
       )
       

@@ -1,6 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getClinics } from '@/repository/ClinicRepository' // Import the getClinics method
+import { getClinics, deleteClinic } from '@/repository/ClinicRepository' // Import the deleteClinic method
+import ClinicModal from './ClinicModal.vue' // Assuming there's a modal to edit clinics
+
+// Define props
+const props = defineProps({
+  publicView: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const clinics = ref([])
 const loading = ref(false)
@@ -9,6 +18,9 @@ const rowsPerPage = ref(10) // Number of rows per page
 const currentPage = ref(0) // Current page number
 const sortField = ref('')
 const sortOrder = ref(1)
+
+const showModal = ref(false) // For controlling the clinic modal
+const selectedClinic = ref(null) // Store the selected clinic for editing
 
 // Define filters for each field
 const filters = ref({
@@ -22,7 +34,7 @@ const filters = ref({
 const fetchClinics = async (page = 0, rows = 10, sortField = '', sortOrder = 1, filters = {}) => {
   try {
     loading.value = true
-    const response = await getClinics(page, rows, sortField, sortOrder, filters) // Update to use the repository
+    const response = await getClinics(page, rows, sortField, sortOrder, filters) // Fetch data from repository
     clinics.value = response.data // Assign the fetched clinic data
     totalRecords.value = response.total // Assign the total number of records
     loading.value = false
@@ -44,27 +56,26 @@ const onPage = (event) => {
 
 // Handle sorting events
 const onSort = (event) => {
-  fetchClinics(
-    currentPage.value,
-    rowsPerPage.value,
-    event.sortField,
-    event.sortOrder,
-    filters.value
-  )
+  fetchClinics(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder, filters.value)
 }
 
 // Handle filtering events
 const onFilter = (event) => {
   filters.value = event.filters // Update filters with event filters
-  fetchClinics(
-    currentPage.value,
-    rowsPerPage.value,
-    sortField.value,
-    sortOrder.value,
-    filters.value
-  )
+  fetchClinics(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value, filters.value)
+}
+
+// Handle deleting a clinic
+const handleDeleteClinic = async (clinicId) => {
+  try {
+    await deleteClinic(clinicId) // Call the delete method from the repository
+    fetchClinics(currentPage.value, rowsPerPage.value) // Refresh the clinic list after deletion
+  } catch (error) {
+    console.error('Error deleting clinic:', error)
+  }
 }
 </script>
+
 
 <template>
   <div>
@@ -113,20 +124,27 @@ const onFilter = (event) => {
         filterPlaceholder="Search by description"
       />
 
-      <!-- Delete Action Column -->
-      <Column header="Actions" bodyClass="text-center">
+      <!-- Conditionally show the Actions column if not public view -->
+      <Column v-if="!publicView" header="Actions" bodyClass="text-center">
         <template #body="slotProps">
           <Button
             label="Delete"
             icon="pi pi-trash"
             class="p-button-danger"
-            @click="handleDeleteUser(slotProps.data.id, slotProps.data.authUid)"
+            @click="handleDeleteClinic(slotProps.data.id)"
           />
         </template>
       </Column>
     </DataTable>
   </div>
 </template>
+
+<style scoped>
+.text-center {
+  text-align: center;
+}
+</style>
+
 
 <style scoped>
 .text-center {
