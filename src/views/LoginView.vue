@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
 import { auth, googleProvider } from '@/firebase/init'
 import { useUserStore } from '@/stores/userStore'
-import { getUser } from '@/repository/UserRepository' // Import the function to fetch users from Firestore
+import { getUser } from '@/repository/UserRepository' // Fetch users from Firestore
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -19,17 +19,17 @@ const login = async () => {
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
     const firebaseUser = userCredential.user
 
-    // Fetch the user data from Firestore using the Firebase UID
+    // Fetch user data from Firestore
     const loggedInUser = await getUser(firebaseUser.uid)
 
     if (loggedInUser) {
-      // Save the user in the Pinia store
+      // Set the user in Pinia store
       userStore.setUser(loggedInUser)
 
-      // Save user data in localStorage
+      // Store user data in localStorage (for session persistence)
       localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser))
 
-      // Redirect to the home page
+      // Redirect user after login
       router.push('/')
     } else {
       error.value = 'User not found in Firestore.'
@@ -47,17 +47,17 @@ const loginWithGoogle = async () => {
     const result = await signInWithPopup(auth, googleProvider)
     const firebaseUser = result.user
 
-    // Fetch the user data from Firestore using the Firebase UID
+    // Fetch user data from Firestore
     const loggedInUser = await getUser(firebaseUser.uid)
 
     if (loggedInUser) {
-      // Save the user in the Pinia store
+      // Set the user in Pinia store
       userStore.setUser(loggedInUser)
 
-      // Save user data in localStorage
+      // Store user data in localStorage
       localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser))
 
-      // Redirect to the home page
+      // Redirect user after login
       router.push('/')
     } else {
       error.value = 'User not found in Firestore.'

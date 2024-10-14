@@ -1,51 +1,41 @@
 <script setup>
-import { ref } from 'vue'
-import { updateUser } from '@/repository/UserRepository' // Import updateUser from your repository
-
-// Props from parent component
-const props = defineProps({
-  userId: {
-    type: String,
-    required: true
-  },
-  firstName: {
-    type: String,
-    default: ''
-  },
-  lastName: {
-    type: String,
-    default: ''
-  },
-  phoneNumber: {
-    type: String,
-    default: ''
-  },
-  subscribeToNewsletter: {
-    type: Boolean,
-    default: true
-  },
-  location: {
-    type: String,
-    default: ''
-  },
-  about: {
-    type: String,
-    default: ''
-  },
-  userType: {
-    type: String,
-    default: 'user'
-  }
-})
+import { ref, onMounted } from 'vue'
+import { useUserStore } from '@/stores/userStore'
+import { getUser, updateUser } from '@/repository/UserRepository' // Import getUser and updateUser from the repository
 
 // Local states for the form
-const firstName = ref(props.firstName)
-const lastName = ref(props.lastName)
-const phoneNumber = ref(props.phoneNumber)
-const subscribeToNewsletter = ref(props.subscribeToNewsletter)
-const location = ref(props.location)
-const about = ref(props.about)
-const userType = ref(props.userType)
+const firstName = ref('')
+const lastName = ref('')
+const phoneNumber = ref('')
+const subscribeToNewsletter = ref(false)
+const location = ref('')
+const about = ref('')
+const userType = ref('user')
+
+// Get the userId from the store
+const userStore = useUserStore()
+const userId = ref(userStore.user?.userId || null) // Get userId from the store
+
+// Fetch user data when the component is mounted
+onMounted(async () => {
+  if (userId.value) {
+    try {
+      const userData = await getUser(userId.value) // Fetch user data from Firestore using userId
+      if (userData) {
+        // Populate form fields with the fetched data
+        firstName.value = userData.firstName
+        lastName.value = userData.lastName
+        phoneNumber.value = userData.phoneNumber
+        subscribeToNewsletter.value = userData.isSubscribed
+        location.value = userData.location
+        about.value = userData.about
+        userType.value = userData.userType
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+    }
+  }
+})
 
 // Handle form submission to update the user document in Firestore
 const submitForm = async () => {
@@ -61,7 +51,7 @@ const submitForm = async () => {
     }
 
     // Update the user document in Firestore
-    await updateUser({ ...updatedUser, userId: props.userId })
+    await updateUser({ ...updatedUser, userId: userId.value })
 
     alert('User details updated successfully!')
   } catch (error) {

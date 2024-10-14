@@ -182,6 +182,10 @@ const signup = async () => {
             <button type="submit" class="btn btn-primary btn-block mt-4" :disabled="!isFormValid">
               Sign Up
             </button>
+
+            <div class="text-center mt-5">
+              <a href="/login" class="btn btn-outline-primary"> Login </a>
+            </div>
             <p v-if="errors.overall" class="text-danger text-center mt-3">{{ errors.overall }}</p>
           </div>
         </form>

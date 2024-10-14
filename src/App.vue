@@ -2,10 +2,17 @@
 import { RouterView } from 'vue-router'
 import NavBar from '@/components/NavBar/NavBar.vue'
 import { useUserStore } from '@/stores/userStore'
+import { onMounted } from 'vue';
 
 const userStore = useUserStore()
 
-userStore.setUser(JSON.parse(localStorage.getItem('loggedInUser')))
+onMounted(() => {
+  const userData = localStorage.getItem('loggedInUser')
+  if (userData) {
+    const parsedUser = JSON.parse(userData)
+    userStore.setUser(parsedUser) // Restore user in Pinia store
+  }
+})
 </script>
 
 <template>

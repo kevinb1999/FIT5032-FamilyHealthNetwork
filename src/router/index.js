@@ -66,16 +66,15 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
-  next()
-  // if (to.meta.requiresAdmin && !userStore.isAdmin) {
-  //   next('/')
-  // } else if (to.meta.requiresStaff && !userStore.isStaff) {
-  //   next('/')
-  // } else if (to.meta.requiresPractitioner && !userStore.isPractitioner) {
-  //   next('/')
-  // } else {
-  //   next()
-  // }
+  if (to.meta.requiresAdmin && !userStore.isAdmin) {
+    next('/')
+  } else if (to.meta.requiresStaff && !userStore.isStaff) {
+    next('/')
+  } else if (to.meta.requiresPractitioner && !userStore.isPractitioner) {
+    next('/')
+  } else {
+    next()
+  }
 })
 
 export default router
