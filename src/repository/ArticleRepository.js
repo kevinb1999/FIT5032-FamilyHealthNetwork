@@ -19,7 +19,7 @@ const articlesCollection = collection(db, 'articles') // Collection for articles
 
 export const getArticleCards = async (page = 0, rows = 10) => {
   try {
-    let q = query(articlesCollection, limit(rows), startAt(page * rows))
+    let q = query(articlesCollection, limit(rows))
 
     // Execute the query
     const snapshot = await getDocs(q)

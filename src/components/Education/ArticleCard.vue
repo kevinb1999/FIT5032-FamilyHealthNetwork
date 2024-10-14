@@ -79,7 +79,6 @@ const handleRating = async (star) => {
     </div>
     <div class="card-footer bg-light d-flex justify-content-start align-items-center">
       <Rating v-model="value" :stars="5" @rate="handleRating(value)" />
-      <span class="ms-3">Average: {{ averageRating }}</span>
     </div>
   </div>
 </template>
