@@ -107,7 +107,7 @@ const addMarker = (coordinates, name, address, type) => {
       color = 'red'
       break
     case 'Clinic':
-      color = 'green'
+      color = 'lime'
       break
     case 'Event':
       color = 'orange'
