@@ -1,13 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { DataTable, Column } from 'primevue'
-import { getSpecialists } from '@/repository/UserRepository' // Import the getSpecialists method
+import { getSpecialists } from '@/repository/UserRepository'
 
 const specialists = ref([])
 const loading = ref(false)
 const totalRecords = ref(0)
 const rowsPerPage = ref(10) // Number of rows per page
 const currentPage = ref(0) // Current page number
+const sortField = ref('') // Field to sort by
+const sortOrder = ref(1) // Sort order
 
 // Fetch specialists from the repository with pagination and sorting
 const fetchSpecialists = async (page = 0, rows = 10, sortField = '', sortOrder = 1) => {
@@ -30,7 +32,7 @@ onMounted(() => {
 // Handle pagination events
 const onPage = (event) => {
   currentPage.value = event.page
-  fetchSpecialists(event.page, event.rows, event.sortField, event.sortOrder)
+  fetchSpecialists(event.page, event.rows, sortField.value, sortOrder.value)
 }
 
 // Handle sorting events
@@ -41,7 +43,7 @@ const onSort = (event) => {
 
 <template>
   <div>
-    <h2 class="text-center">Specialists List</h2>
+    <h2 class="text-center" aria-label="Specialists List">Specialists List</h2>
 
     <!-- Specialists Data Table -->
     <DataTable
@@ -55,14 +57,15 @@ const onSort = (event) => {
       @sort="onSort"
       :sortField="sortField"
       :sortOrder="sortOrder"
+      aria-label="Table listing specialists"
     >
-      <!-- Columns with built-in filters -->
       <Column
         field="firstName"
         header="First Name"
         sortable
         filter
         filterPlaceholder="Search by first name"
+        aria-label="First Name"
       />
       <Column
         field="lastName"
@@ -70,14 +73,23 @@ const onSort = (event) => {
         sortable
         filter
         filterPlaceholder="Search by last name"
+        aria-label="Last Name"
       />
-      <Column field="email" header="Email" sortable filter filterPlaceholder="Search by email" />
+      <Column
+        field="email"
+        header="Email"
+        sortable
+        filter
+        filterPlaceholder="Search by email"
+        aria-label="Email"
+      />
       <Column
         field="phoneNumber"
         header="Phone Number"
         sortable
         filter
         filterPlaceholder="Search by phone number"
+        aria-label="Phone Number"
       />
       <Column
         field="location"
@@ -85,6 +97,7 @@ const onSort = (event) => {
         sortable
         filter
         filterPlaceholder="Search by location"
+        aria-label="Location"
       />
     </DataTable>
   </div>

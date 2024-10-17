@@ -1,71 +1,5 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { getUsers, deleteUser } from '@/repository/UserRepository' // Import deleteUser method
-import { getAuth, deleteUser as deleteAuthUser } from 'firebase/auth'
-
-const users = ref([])
-const loading = ref(false)
-const totalRecords = ref(0)
-const rowsPerPage = ref(10) // Number of rows per page
-const currentPage = ref(0) // Current page number
-const auth = getAuth() // Firebase Auth
-const sortField = ref('')
-const sortOrder = ref(1)
-
-// Fetch users from the repository with pagination and sorting
-const fetchUsers = async (page = 0, rows = 10, sortField = '', sortOrder = 1) => {
-  try {
-    loading.value = true
-    const response = await getUsers(page, rows, sortField, sortOrder) // Update to use the repository
-    users.value = response.data // Assign the fetched user data
-    totalRecords.value = response.total // Assign the total number of records
-    loading.value = false
-  } catch (err) {
-    console.error('Error fetching users:', err)
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  fetchUsers() // Fetch users on mount
-})
-
-// Handle pagination events
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchUsers(event.page, event.rows, event.sortField, event.sortOrder)
-}
-
-// Handle sorting events
-const onSort = (event) => {
-  fetchUsers(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder)
-}
-
-// Delete a user from Firestore and Firebase Auth
-const handleDeleteUser = async (userId, authUid) => {
-  try {
-    // Delete the user from Firestore
-    await deleteUser(userId)
-
-    // Delete the user from Firebase Authentication
-    const userToDelete = auth.currentUser // Assuming admin rights
-    if (userToDelete && userToDelete.uid === authUid) {
-      await deleteAuthUser(userToDelete)
-    }
-
-    // Refetch users after deletion
-    fetchUsers(currentPage.value, rowsPerPage.value)
-
-    console.log(`User ${userId} deleted successfully`)
-  } catch (err) {
-    console.error('Error deleting user:', err)
-  }
-}
-</script>
-
 <template>
   <div>
-    <!-- User Data Table -->
     <DataTable
       :value="users"
       :loading="loading"
@@ -77,16 +11,23 @@ const handleDeleteUser = async (userId, authUid) => {
       @sort="onSort"
       :sortField="sortField"
       :sortOrder="sortOrder"
-      :filters="filters"
+      aria-label="List of users"
     >
-      <!-- Columns with built-in filters -->
-      <Column field="email" header="Email" sortable filter filterPlaceholder="Search by email" />
+      <Column
+        field="email"
+        header="Email"
+        sortable
+        filter
+        filterPlaceholder="Search by email"
+        aria-label="Search by email"
+      />
       <Column
         field="firstName"
         header="First Name"
         sortable
         filter
         filterPlaceholder="Search by first name"
+        aria-label="Search by first name"
       />
       <Column
         field="lastName"
@@ -94,6 +35,7 @@ const handleDeleteUser = async (userId, authUid) => {
         sortable
         filter
         filterPlaceholder="Search by last name"
+        aria-label="Search by last name"
       />
       <Column
         field="phoneNumber"
@@ -101,25 +43,120 @@ const handleDeleteUser = async (userId, authUid) => {
         sortable
         filter
         filterPlaceholder="Search by phone number"
+        aria-label="Search by phone number"
       />
-
-      <!-- Delete Action Column -->
       <Column header="Actions" bodyClass="text-center">
         <template #body="slotProps">
-          <Button
-            label="Delete"
-            icon="pi pi-trash"
-            class="p-button-danger"
-            @click="handleDeleteUser(slotProps.data.id, slotProps.data.authUid)"
-          />
+          <div class="d-flex justify-content-center">
+            <button
+              type="button"
+              class="btn btn-warning mr-2"
+              @click="handleEditUser(slotProps.data)"
+              aria-label="Edit user {{ slotProps.data.email }}"
+            >
+              <i class="pi pi-pencil" aria-hidden="true"></i> Edit
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="handleDeleteUser(slotProps.data.id, slotProps.data.authUid)"
+              aria-label="Delete user {{ slotProps.data.email }}"
+            >
+              <i class="pi pi-trash" aria-hidden="true"></i> Delete
+            </button>
+          </div>
         </template>
       </Column>
     </DataTable>
+
+    <UserModal
+      v-if="selectedUser"
+      :userData="selectedUser"
+      :showModal="showModal"
+      @close="closeModal"
+      @refreshTable="fetchData"
+    />
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { getUsers, deleteUser } from '@/repository/UserRepository'
+import { getAuth, deleteUser as deleteAuthUser } from 'firebase/auth'
+import UserModal from '@/components/Users/UserModal.vue'
+
+const users = ref([])
+const loading = ref(false)
+const totalRecords = ref(0)
+const rowsPerPage = ref(10)
+const currentPage = ref(0)
+const sortField = ref('')
+const sortOrder = ref(1)
+const showModal = ref(false)
+const selectedUser = ref(null)
+
+const auth = getAuth()
+
+function fetchData() {
+  loading.value = true
+  getUsers(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value)
+    .then((response) => {
+      users.value = response.data
+      totalRecords.value = response.total
+      loading.value = false
+    })
+    .catch(() => {
+      loading.value = false
+    })
+}
+
+onMounted(() => {
+  fetchData()
+})
+
+const onPage = (event) => {
+  currentPage.value = event.page
+  fetchData()
+}
+
+const onSort = (event) => {
+  fetchData()
+}
+
+const handleDeleteUser = async (userId, authUid) => {
+  try {
+    await deleteUser(userId)
+    const userToDelete = auth.currentUser
+    if (userToDelete && userToDelete.uid === authUid) {
+      await deleteAuthUser(userToDelete)
+    }
+    fetchData()
+  } catch (err) {
+    console.error('Error deleting user:', err)
+  }
+}
+
+const handleEditUser = (user) => {
+  selectedUser.value = user
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+  selectedUser.value = null
+}
+
+defineExpose({ fetchData }) // Ensure fetchData is defined for exposure
+</script>
 
 <style scoped>
 .text-center {
   text-align: center;
+}
+.d-flex {
+  display: flex;
+}
+.justify-content-center {
+  justify-content: center;
 }
 </style>

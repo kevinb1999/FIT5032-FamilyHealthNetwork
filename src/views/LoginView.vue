@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
 import { auth, googleProvider } from '@/firebase/init'
 import { useUserStore } from '@/stores/userStore'
-import { getUser } from '@/repository/UserRepository' // Fetch users from Firestore
+import { getUser } from '@/repository/UserRepository'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -15,21 +15,14 @@ const error = ref(null)
 const login = async () => {
   try {
     error.value = null
-    // Sign in with email and password
     const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
     const firebaseUser = userCredential.user
 
-    // Fetch user data from Firestore
     const loggedInUser = await getUser(firebaseUser.uid)
 
     if (loggedInUser) {
-      // Set the user in Pinia store
-      userStore.setUser(loggedInUser)
-
-      // Store user data in localStorage (for session persistence)
+      userStore.setUser(loggedInUser, firebaseUser.uid)
       localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser))
-
-      // Redirect user after login
       router.push('/')
     } else {
       error.value = 'User not found in Firestore.'
@@ -43,21 +36,14 @@ const login = async () => {
 const loginWithGoogle = async () => {
   try {
     error.value = null
-    // Sign in with Google
     const result = await signInWithPopup(auth, googleProvider)
     const firebaseUser = result.user
 
-    // Fetch user data from Firestore
     const loggedInUser = await getUser(firebaseUser.uid)
 
     if (loggedInUser) {
-      // Set the user in Pinia store
-      userStore.setUser(loggedInUser)
-
-      // Store user data in localStorage
+      userStore.setUser(loggedInUser, firebaseUser.uid)
       localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser))
-
-      // Redirect user after login
       router.push('/')
     } else {
       error.value = 'User not found in Firestore.'
@@ -71,10 +57,10 @@ const loginWithGoogle = async () => {
 
 <template>
   <div class="d-flex justify-content-center align-items-center h-100 bg-light">
-    <div class="card p-4 shadow-sm">
+    <div class="card p-4 shadow-sm" role="form" aria-labelledby="login-heading">
       <div class="card-body">
-        <h2 class="card-title text-center mb-4">Login</h2>
-        <form @submit.prevent="login">
+        <h2 id="login-heading" class="card-title text-center mb-4">Login</h2>
+        <form @submit.prevent="login" aria-describedby="login-error">
           <div class="form-group">
             <label for="email">Email</label>
             <input
@@ -84,6 +70,8 @@ const loginWithGoogle = async () => {
               class="form-control"
               placeholder="Enter your email"
               required
+              aria-required="true"
+              aria-invalid="error !== null"
             />
           </div>
           <div class="form-group mt-3">
@@ -95,20 +83,28 @@ const loginWithGoogle = async () => {
               class="form-control"
               placeholder="Enter your password"
               required
+              aria-required="true"
+              aria-invalid="error !== null"
             />
           </div>
           <div class="text-center">
             <button type="submit" class="btn btn-primary btn-block mt-4">Login</button>
-            <p v-if="error" class="text-danger text-center mt-3">{{ error }}</p>
+            <p v-if="error" class="text-danger text-center mt-3" id="login-error">{{ error }}</p>
           </div>
         </form>
         <div class="text-center mt-5">
-          <button @click="loginWithGoogle" class="btn btn-outline-primary">
+          <button
+            @click="loginWithGoogle"
+            class="btn btn-outline-primary"
+            aria-label="Sign in with Google"
+          >
             Sign in with Google
           </button>
         </div>
         <div class="text-center mt-5">
-          <a href="/signup" class="btn btn-outline-primary"> Sign Up </a>
+          <router-link to="/signup" class="btn btn-outline-primary" aria-label="Sign Up"
+            >Sign Up</router-link
+          >
         </div>
       </div>
     </div>

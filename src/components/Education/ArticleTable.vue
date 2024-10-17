@@ -1,72 +1,5 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { getArticles, deleteArticle } from '@/repository/ArticleRepository' // Import the deleteArticle method
-import ArticleModal from './ArticleModal.vue'
-
-// Define props
-const props = defineProps({
-  publicView: {
-    type: Boolean,
-    default: false
-  }
-})
-
-const articles = ref([])
-const loading = ref(false)
-const totalRecords = ref(0)
-const rowsPerPage = ref(10) // Number of rows per page
-const currentPage = ref(0) // Current page number
-const sortField = ref('')
-const sortOrder = ref(1)
-
-const showModal = ref(false) // For controlling the article modal
-const selectedArticle = ref(null) // Store the selected article for editing
-
-// Fetch articles from the repository with pagination and sorting
-const fetchArticles = async (page = 0, rows = 10, sortField = '', sortOrder = 1) => {
-  try {
-    loading.value = true
-    const response = await getArticles(page, rows, sortField, sortOrder) // Call the repository method
-    articles.value = response.data // Assign the fetched articles data
-    totalRecords.value = response.total // Assign the total number of records
-    loading.value = false
-  } catch (err) {
-    console.error('Error fetching articles:', err)
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  fetchArticles() // Fetch articles on mount
-})
-
-// Handle pagination events
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchArticles(event.page, event.rows, event.sortField, event.sortOrder)
-}
-
-// Handle sorting events
-const onSort = (event) => {
-  fetchArticles(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder)
-}
-
-// Handle deleting an article
-const handleDeleteArticle = async (articleId) => {
-  try {
-    await deleteArticle(articleId) // Call the delete method from the repository
-    fetchArticles(currentPage.value, rowsPerPage.value) // Refresh the articles after deletion
-  } catch (error) {
-    console.error('Error deleting article:', error)
-  }
-}
-</script>
-
-
-
 <template>
   <div>
-    <!-- Article Data Table -->
     <DataTable
       :value="articles"
       :loading="loading"
@@ -76,64 +9,124 @@ const handleDeleteArticle = async (articleId) => {
       :lazy="true"
       @page="onPage"
       @sort="onSort"
+      @filter="onFilter"
       :sortField="sortField"
       :sortOrder="sortOrder"
+      :filters="filters"
+      aria-label="List of articles"
     >
-      <!-- Columns with built-in filters -->
-      <Column field="title" header="Title" sortable filter filterPlaceholder="Search by title" />
       <Column
-        field="content"
-        header="Content"
+        field="title"
+        header="Title"
         sortable
         filter
-        filterPlaceholder="Search by content"
+        filterPlaceholder="Search by title"
+        aria-label="Search by article title"
       />
       <Column
-        field="totalReviewCount"
-        header="Review Count"
+        field="image"
+        header="Image URL"
         sortable
         filter
-        filterPlaceholder="Search by review count"
+        filterPlaceholder="Search by image URL"
+        aria-label="Search by image URL"
       />
       <Column
-        field="redirectLink"
-        header="Redirect Link"
+        field="description"
+        header="Description"
         sortable
         filter
-        filterPlaceholder="Search by link"
+        filterPlaceholder="Search by description"
+        aria-label="Search by description"
       />
-
-      <!-- Conditionally show the Actions column if not public view -->
-      <Column v-if="!publicView" header="Actions" bodyClass="text-center">
+      <Column header="Actions" bodyClass="text-center">
         <template #body="slotProps">
-          <Button
-            label="Delete"
-            icon="pi pi-trash"
-            class="p-button-danger"
-            @click="handleDeleteArticle(slotProps.data.id)"
-          />
+          <div class="d-flex justify-content-center">
+            <button
+              type="button"
+              class="btn btn-warning me-2"
+              @click="$emit('edit', slotProps.data)"
+              aria-label="Edit article {{ slotProps.data.title }}"
+            >
+              <i class="pi pi-pencil" aria-hidden="true"></i> Edit
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="handleDeleteArticle(slotProps.data.id)"
+              aria-label="Delete article {{ slotProps.data.title }}"
+            >
+              <i class="pi pi-trash" aria-hidden="true"></i> Delete
+            </button>
+          </div>
         </template>
       </Column>
     </DataTable>
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue'
+import { getArticles, deleteArticle } from '@/repository/ArticleRepository'
+
+const articles = ref([])
+const loading = ref(false)
+const totalRecords = ref(0)
+const rowsPerPage = ref(10)
+const currentPage = ref(0)
+const sortField = ref('')
+const sortOrder = ref(1)
+
+// Function to fetch article data
+function fetchData() {
+  loading.value = true
+  getArticles(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value)
+    .then((response) => {
+      articles.value = response.data
+      totalRecords.value = response.total
+      loading.value = false
+    })
+    .catch(() => {
+      loading.value = false
+    })
+}
+
+// Lifecycle hook to fetch data on mount
+onMounted(() => {
+  fetchData()
+})
+
+// Pagination and sorting handlers
+const onPage = (event) => {
+  currentPage.value = event.page
+  fetchData()
+}
+
+const onSort = (event) => {
+  fetchData()
+}
+
+// Delete article handler
+const handleDeleteArticle = async (articleId) => {
+  try {
+    await deleteArticle(articleId)
+    fetchData() // Refresh data after deletion
+  } catch (error) {
+    console.error('Error deleting article:', error)
+  }
+}
+
+// Expose the fetchData function to the parent component
+defineExpose({
+  fetchData
+})
+</script>
+
 <style scoped>
 .text-center {
   text-align: center;
 }
-</style>
-
-
-<style scoped>
-.text-center {
-  text-align: center;
-}
-</style>
-
-
-<style scoped>
-.text-center {
-  text-align: center;
+.me-2 {
+  margin-right: 0.5rem; /* Small gap between buttons */
 }
 </style>

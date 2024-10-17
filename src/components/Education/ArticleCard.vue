@@ -34,14 +34,14 @@ const props = defineProps({
   }
 })
 
-const value = ref(0) // Ref to hold the selected star value
+const value = ref(0)
 
-// Compute the average rating based on total stars and reviews
 const averageRating = computed(() => {
-  return props.totalReviewCount === 0 ? 0 : (props.totalStarCount / props.totalReviewCount).toFixed(1)
+  return props.totalReviewCount === 0
+    ? 0
+    : (props.totalStarCount / props.totalReviewCount).toFixed(1)
 })
 
-// Function to handle rating selection
 const handleRating = async (star) => {
   value.value = star
   const updatedArticle = {
@@ -51,11 +51,11 @@ const handleRating = async (star) => {
     content: props.description,
     totalStarCount: props.totalStarCount + star,
     totalReviewCount: props.totalReviewCount + 1,
-    userReviewArr: [] // Optional: Add user review array if necessary
+    userReviewArr: []
   }
 
   try {
-    await updateArticle(updatedArticle) // Use updateArticle from repository
+    await updateArticle(updatedArticle)
     console.log('Article updated successfully.')
   } catch (error) {
     console.error('Error updating article:', error)
@@ -64,21 +64,26 @@ const handleRating = async (star) => {
 </script>
 
 <template>
-  <div class="card w-100 border border-primary">
+  <div class="card w-100 border border-primary" role="article" aria-labelledby="article-title">
     <div class="card-header text-white bg-primary">
-      <h5 class="card-title mb-0">{{ title }}</h5>
+      <h5 id="article-title" class="card-title mb-0">{{ title }}</h5>
     </div>
-    <div class="article-img">
-      <img v-if="image" :src="image" alt="Article Image" class="img-fluid" />
-      <div v-else class="no-image">No Image Available</div>
+    <div class="article-img" role="img" aria-label="Article Image">
+      <img v-if="image" :src="image" alt="Image related to the article" class="img-fluid" />
+      <div v-else class="no-image" aria-hidden="true">No Image Available</div>
     </div>
     <div class="card-body">
-      <p class="card-text">
+      <p class="card-text" aria-label="Article Description">
         {{ description }}
       </p>
     </div>
     <div class="card-footer bg-light d-flex justify-content-start align-items-center">
-      <Rating v-model="value" :stars="5" @rate="handleRating(value)" />
+      <Rating
+        v-model="value"
+        :stars="5"
+        @rate="handleRating(value)"
+        aria-label="Rate this article"
+      />
     </div>
   </div>
 </template>

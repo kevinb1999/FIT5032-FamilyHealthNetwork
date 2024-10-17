@@ -37,11 +37,7 @@ export const getEvents = async (
       const filterValue = filters[filterField].value
       if (filterValue) {
         // Apply Firestore where clause for each filter field
-        q = query(
-          q,
-          where(filterField, '>=', filterValue),
-          where(filterField, '<=', filterValue + '\uf8ff')
-        )
+        q = query(q, where(filterField, '>=', filterValue), where(filterField, '<=', filterValue))
       }
     }
 

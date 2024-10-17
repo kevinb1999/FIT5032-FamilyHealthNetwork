@@ -4,7 +4,8 @@ import { ref } from 'vue'
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null, // The logged-in user data from Firestore
-    userType: null // The role or type of the user
+    userType: null, // The role or type of the user
+    userId: null
   }),
   getters: {
     isAdmin: (state) => state.userType === 'admin',
@@ -12,9 +13,10 @@ export const useUserStore = defineStore('user', {
     isPractitioner: (state) => state.userType === 'practitioner'
   },
   actions: {
-    setUser(user) {
+    setUser(user, uid) {
       this.user = user
-      this.userType = user.userType // Assuming userType comes from Firestore
+      this.userType = user.userType
+      this.userId = uid
     },
     clearUser() {
       this.user = null

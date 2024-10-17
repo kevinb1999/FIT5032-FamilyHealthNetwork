@@ -3,9 +3,9 @@ import { ref, computed } from 'vue'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/firebase/init'
 import { useUserStore } from '@/stores/userStore'
-import { saveUser } from '@/repository/UserRepository' // Corrected function name
+import { saveUser } from '@/repository/UserRepository'
 import { useRouter } from 'vue-router'
-import { User } from '@/models/User' // Import the User model
+import { User } from '@/models/User'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -96,26 +96,22 @@ const signup = async () => {
     )
     console.log('Signed up:', userCredential.user)
 
-    // Create a new user object based on your User model
     const newUser = new User(
       userCredential.user.uid,
       userCredential.user.email,
-      'user', // userType default to 'user'
-      '', // firstName, can be updated later
-      '', // lastName, can be updated later
-      '', // phoneNumber
-      false, // isSubscribed to newsletter
-      '', // location
-      '' // about information
+      'user',
+      '',
+      '',
+      '',
+      false,
+      '',
+      ''
     )
 
-    // Save the user to Firestore
     await saveUser(newUser)
 
-    // Set the user in the Pinia store
     userStore.setUser(newUser)
 
-    // Redirect to profile completion page
     router.push('/signup/moreinfo')
   } catch (err) {
     if (err.code === 'auth/email-already-in-use') {
@@ -133,10 +129,10 @@ const signup = async () => {
 
 <template>
   <div class="d-flex justify-content-center align-items-center h-100 bg-light">
-    <div class="card p-4 shadow-sm">
+    <div class="card p-4 shadow-sm" role="form" aria-labelledby="signup-heading">
       <div class="card-body">
-        <h2 class="card-title text-center mb-4">Sign Up</h2>
-        <form @submit.prevent="signup">
+        <h2 id="signup-heading" class="card-title text-center mb-4">Sign Up</h2>
+        <form @submit.prevent="signup" aria-describedby="signup-error">
           <div class="form-group">
             <label for="email">Email</label>
             <input
@@ -147,6 +143,8 @@ const signup = async () => {
               class="form-control"
               placeholder="Enter your email"
               required
+              aria-required="true"
+              aria-invalid="errors.email !== null"
             />
             <div v-if="errors.email" class="text-danger">{{ errors.email }}</div>
           </div>
@@ -160,6 +158,8 @@ const signup = async () => {
               class="form-control"
               placeholder="Enter your password"
               required
+              aria-required="true"
+              aria-invalid="errors.password !== null"
             />
             <div v-if="errors.password" class="text-danger">{{ errors.password }}</div>
           </div>
@@ -173,6 +173,8 @@ const signup = async () => {
               class="form-control"
               placeholder="Confirm your password"
               required
+              aria-required="true"
+              aria-invalid="errors.confirmPassword !== null"
             />
             <div v-if="errors.confirmPassword" class="text-danger">
               {{ errors.confirmPassword }}
@@ -182,13 +184,14 @@ const signup = async () => {
             <button type="submit" class="btn btn-primary btn-block mt-4" :disabled="!isFormValid">
               Sign Up
             </button>
-
-            <div class="text-center mt-5">
-              <a href="/login" class="btn btn-outline-primary"> Login </a>
-            </div>
-            <p v-if="errors.overall" class="text-danger text-center mt-3">{{ errors.overall }}</p>
+            <p v-if="errors.overall" class="text-danger text-center mt-3" id="signup-error">
+              {{ errors.overall }}
+            </p>
           </div>
         </form>
+        <div class="text-center mt-5">
+          <router-link to="/login" class="btn btn-outline-primary"> Login </router-link>
+        </div>
       </div>
     </div>
   </div>

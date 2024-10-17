@@ -15,7 +15,7 @@ const router = useRouter()
     <div class="card p-4 shadow-sm">
       <div class="card-body">
         <h2 class="card-title text-center mb-4">Finish Your Profile</h2>
-        <UserDetails is-sign-up />
+        <UserDetails isSignUp />
       </div>
     </div>
   </div>

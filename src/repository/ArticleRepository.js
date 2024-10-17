@@ -59,11 +59,7 @@ export const getArticles = async (
       const filterValue = filters[filterField].value
       if (filterValue) {
         // Apply Firestore where clause for each filter field
-        q = query(
-          q,
-          where(filterField, '>=', filterValue),
-          where(filterField, '<=', filterValue + '\uf8ff')
-        )
+        q = query(q, where(filterField, '>=', filterValue), where(filterField, '<=', filterValue))
       }
     }
 
@@ -91,7 +87,7 @@ export const getArticles = async (
 // Add or update an article in Firestore
 export const saveArticle = async (article) => {
   try {
-    const articleRef = doc(db, 'articles' , article.id) // Reference to article document
+    const articleRef = doc(db, 'articles', article.id) // Reference to article document
     await setDoc(articleRef, {
       title: article.title,
       image: article.image,

@@ -1,85 +1,5 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { getClinics, deleteClinic } from '@/repository/ClinicRepository' // Import the deleteClinic method
-import ClinicModal from './ClinicModal.vue' // Assuming there's a modal to edit clinics
-
-// Define props
-const props = defineProps({
-  publicView: {
-    type: Boolean,
-    default: false
-  }
-})
-
-const clinics = ref([])
-const loading = ref(false)
-const totalRecords = ref(0)
-const rowsPerPage = ref(10) // Number of rows per page
-const currentPage = ref(0) // Current page number
-const sortField = ref('')
-const sortOrder = ref(1)
-
-const showModal = ref(false) // For controlling the clinic modal
-const selectedClinic = ref(null) // Store the selected clinic for editing
-
-// Define filters for each field
-const filters = ref({
-  name: { value: null, matchMode: 'contains' },
-  phoneNumber: { value: null, matchMode: 'contains' },
-  location: { value: null, matchMode: 'contains' },
-  description: { value: null, matchMode: 'contains' }
-})
-
-// Fetch clinics from the repository with pagination, sorting, and filtering
-const fetchClinics = async (page = 0, rows = 10, sortField = '', sortOrder = 1, filters = {}) => {
-  try {
-    loading.value = true
-    const response = await getClinics(page, rows, sortField, sortOrder, filters) // Fetch data from repository
-    clinics.value = response.data // Assign the fetched clinic data
-    totalRecords.value = response.total // Assign the total number of records
-    loading.value = false
-  } catch (err) {
-    console.error('Error fetching clinics:', err)
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  fetchClinics() // Fetch clinics on mount
-})
-
-// Handle pagination events
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchClinics(event.page, event.rows, sortField.value, sortOrder.value, filters.value)
-}
-
-// Handle sorting events
-const onSort = (event) => {
-  fetchClinics(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder, filters.value)
-}
-
-// Handle filtering events
-const onFilter = (event) => {
-  filters.value = event.filters // Update filters with event filters
-  fetchClinics(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value, filters.value)
-}
-
-// Handle deleting a clinic
-const handleDeleteClinic = async (clinicId) => {
-  try {
-    await deleteClinic(clinicId) // Call the delete method from the repository
-    fetchClinics(currentPage.value, rowsPerPage.value) // Refresh the clinic list after deletion
-  } catch (error) {
-    console.error('Error deleting clinic:', error)
-  }
-}
-</script>
-
-
 <template>
   <div>
-    <!-- Clinic Data Table -->
     <DataTable
       :value="clinics"
       :loading="loading"
@@ -93,14 +13,15 @@ const handleDeleteClinic = async (clinicId) => {
       :sortField="sortField"
       :sortOrder="sortOrder"
       :filters="filters"
+      aria-label="List of clinics"
     >
-      <!-- Columns with built-in filters -->
       <Column
         field="name"
         header="Clinic Name"
         sortable
         filter
         filterPlaceholder="Search by name"
+        aria-label="Search by clinic name"
       />
       <Column
         field="phoneNumber"
@@ -108,6 +29,7 @@ const handleDeleteClinic = async (clinicId) => {
         sortable
         filter
         filterPlaceholder="Search by phone number"
+        aria-label="Search by phone number"
       />
       <Column
         field="location"
@@ -115,6 +37,7 @@ const handleDeleteClinic = async (clinicId) => {
         sortable
         filter
         filterPlaceholder="Search by location"
+        aria-label="Search by location"
       />
       <Column
         field="description"
@@ -122,32 +45,95 @@ const handleDeleteClinic = async (clinicId) => {
         sortable
         filter
         filterPlaceholder="Search by description"
+        aria-label="Search by description"
       />
-
-      <!-- Conditionally show the Actions column if not public view -->
-      <Column v-if="!publicView" header="Actions" bodyClass="text-center">
+      <Column header="Actions" bodyClass="text-center" v-if="!isPublic">
         <template #body="slotProps">
-          <Button
-            label="Delete"
-            icon="pi pi-trash"
-            class="p-button-danger"
-            @click="handleDeleteClinic(slotProps.data.id)"
-          />
+          <div class="d-flex justify-content-center">
+            <button
+              type="button"
+              class="btn btn-warning me-2"
+              @click="$emit('edit', slotProps.data)"
+              aria-label="Edit clinic {{ slotProps.data.name }}"
+            >
+              <i class="pi pi-pencil" aria-hidden="true"></i> Edit
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="handleDeleteClinic(slotProps.data.id)"
+              aria-label="Delete clinic {{ slotProps.data.name }}"
+            >
+              <i class="pi pi-trash" aria-hidden="true"></i> Delete
+            </button>
+          </div>
         </template>
       </Column>
     </DataTable>
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue'
+import { getClinics, deleteClinic } from '@/repository/ClinicRepository'
+
+// Define props
+const props = defineProps({
+  isPublic: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const clinics = ref([])
+const loading = ref(false)
+const totalRecords = ref(0)
+const rowsPerPage = ref(10)
+const currentPage = ref(0)
+const sortField = ref('')
+const sortOrder = ref(1)
+
+function fetchData() {
+  loading.value = true
+  getClinics(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value)
+    .then((response) => {
+      clinics.value = response.data
+      totalRecords.value = response.total
+      loading.value = false
+    })
+    .catch(() => {
+      loading.value = false
+    })
+}
+
+onMounted(() => {
+  fetchData()
+})
+
+const onPage = (event) => {
+  currentPage.value = event.page
+  fetchData()
+}
+
+const onSort = (event) => {
+  fetchData()
+}
+
+const handleDeleteClinic = async (clinicId) => {
+  try {
+    await deleteClinic(clinicId)
+    fetchData()
+  } catch (error) {
+    console.error('Error deleting clinic:', error)
+  }
+}
+</script>
+
 <style scoped>
 .text-center {
   text-align: center;
 }
-</style>
-
-
-<style scoped>
-.text-center {
-  text-align: center;
+.me-2 {
+  margin-right: 0.5rem; /* Small gap between buttons */
 }
 </style>

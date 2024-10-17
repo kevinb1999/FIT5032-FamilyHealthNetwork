@@ -38,11 +38,7 @@ export const getClinics = async (
       const filterValue = filters[filterField].value
       if (filterValue) {
         // Apply Firestore where clause for each filter field (assuming "contains" matchMode)
-        q = query(
-          q,
-          where(filterField, '>=', filterValue),
-          where(filterField, '<=', filterValue + '\uf8ff')
-        )
+        q = query(q, where(filterField, '>=', filterValue), where(filterField, '<=', filterValue))
       }
     }
 
@@ -59,7 +55,7 @@ export const getClinics = async (
 
     return {
       data: clinics,
-      total: snapshot.size // Total number of records (adjust if needed)
+      total: snapshot.size
     }
   } catch (error) {
     console.error('Error fetching clinics:', error)

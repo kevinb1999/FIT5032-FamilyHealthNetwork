@@ -2,27 +2,27 @@
 import { ref, onMounted } from 'vue'
 import ArticleCard from '@/components/Education/ArticleCard.vue'
 import { getArticleCards } from '@/repository/ArticleRepository'
-import { getEvents } from '@/repository/EventRepository' // Assuming similar structure for events
+import { getEvents } from '@/repository/EventRepository'
 import Paginator from 'primevue/paginator'
 
 const articles = ref([])
-const events = ref([]) // If you want to handle events similarly
-const loading = ref(true) // Loading state
+const events = ref([])
+const loading = ref(true)
 
 // Pagination state
 const totalRecordsArticles = ref(0)
 const totalRecordsEvents = ref(0)
-const rowsPerPage = ref(10) // Number of rows per page
-const currentPageArticles = ref(0) // Current page number for articles
-const currentPageEvents = ref(0) // Current page number for events
+const rowsPerPage = ref(10)
+const currentPageArticles = ref(0)
+const currentPageEvents = ref(0)
 
 // Fetch articles with pagination
 const fetchArticles = async (page = 0) => {
   try {
     loading.value = true
-    const response = await getArticleCards(page, rowsPerPage.value) // Pass page and rowsPerPage to Firestore
-    articles.value = response.data // Assign data from Firestore
-    totalRecordsArticles.value = response.total // Total number of records
+    const response = await getArticleCards(page, rowsPerPage.value)
+    articles.value = response.data
+    totalRecordsArticles.value = response.total
   } catch (error) {
     console.error('Error fetching articles:', error)
   } finally {
@@ -30,13 +30,13 @@ const fetchArticles = async (page = 0) => {
   }
 }
 
-// Fetch events with pagination (if needed)
+// Fetch events with pagination
 const fetchEvents = async (page = 0) => {
   try {
     loading.value = true
-    const response = await getEvents(page, rowsPerPage.value) // Pass page and rowsPerPage to Firestore
-    events.value = response.data // Assign data from Firestore
-    totalRecordsEvents.value = response.total // Total number of records
+    const response = await getEvents(page, rowsPerPage.value)
+    events.value = response.data
+    totalRecordsEvents.value = response.total
   } catch (error) {
     console.error('Error fetching events:', error)
   } finally {
@@ -58,18 +58,18 @@ const onPageChangeEvents = (event) => {
 
 // Call fetch functions on mount
 onMounted(() => {
-  fetchArticles() // Fetch first page of articles
-  fetchEvents() // Fetch first page of events
+  fetchArticles()
+  fetchEvents()
 })
 </script>
 
 <template>
   <div class="container my-4">
-    <div v-if="loading" class="text-center">Loading...</div>
+    <div v-if="loading" class="text-center" role="alert" aria-live="polite">Loading...</div>
     <div v-else>
       <!-- Articles Section -->
-      <h2>Articles</h2>
-      <div class="row">
+      <h2 id="articles-section" tabindex="0">Articles</h2>
+      <div class="row" aria-labelledby="articles-section">
         <div
           v-for="article in articles"
           :key="article.id"
@@ -97,22 +97,19 @@ onMounted(() => {
         :totalRecords="totalRecordsArticles"
         :first="currentPageArticles * rowsPerPage"
         @page="onPageChangeArticles"
+        aria-label="Pagination for articles"
       />
 
       <!-- Events Section -->
-      <h2 class="mt-5">Events</h2>
-      <div class="row">
-        <div
-          v-for="event in events"
-          :key="event.id"
-          class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4"
-        >
+      <h2 id="events-section" class="mt-5" tabindex="0">Events</h2>
+      <div class="row" aria-labelledby="events-section">
+        <div v-for="event in events" :key="event.id" class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
           <div class="card w-100 border border-primary">
             <div class="card-header text-white bg-primary">
               <h5 class="card-title mb-0">{{ event.name }}</h5>
             </div>
             <div class="card-body">
-              <p>{{ event.description }}</p>
+              <p class="card-text">{{ event.description }}</p>
               <p><strong>Date:</strong> {{ event.dateTime }}</p>
               <p><strong>Location:</strong> {{ event.location }}</p>
             </div>
@@ -126,9 +123,14 @@ onMounted(() => {
         :totalRecords="totalRecordsEvents"
         :first="currentPageEvents * rowsPerPage"
         @page="onPageChangeEvents"
+        aria-label="Pagination for events"
       />
     </div>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.text-center {
+  text-align: center;
+}
+</style>

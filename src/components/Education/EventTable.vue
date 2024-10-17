@@ -1,71 +1,5 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { getEvents, deleteEvent } from '@/repository/EventRepository' // Import the deleteEvent method
-import EventModal from './EventModal.vue' // Assuming there's a modal to edit events
-
-// Define props
-const props = defineProps({
-  publicView: {
-    type: Boolean,
-    default: false
-  }
-})
-
-const events = ref([])
-const loading = ref(false)
-const totalRecords = ref(0)
-const rowsPerPage = ref(10) // Number of rows per page
-const currentPage = ref(0) // Current page number
-const sortField = ref('')
-const sortOrder = ref(1)
-
-const showModal = ref(false) // For controlling the event modal
-const selectedEvent = ref(null) // Store the selected event for editing
-
-// Fetch events from the repository with pagination and sorting
-const fetchEvents = async (page = 0, rows = 10, sortField = '', sortOrder = 1) => {
-  try {
-    loading.value = true
-    const response = await getEvents(page, rows, sortField, sortOrder) // Call the repository method
-    events.value = response.data // Assign the fetched event data
-    totalRecords.value = response.total // Assign the total number of records
-    loading.value = false
-  } catch (err) {
-    console.error('Error fetching events:', err)
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  fetchEvents() // Fetch events on mount
-})
-
-// Handle pagination events
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchEvents(event.page, event.rows, event.sortField, event.sortOrder)
-}
-
-// Handle sorting events
-const onSort = (event) => {
-  fetchEvents(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder)
-}
-
-// Handle deleting an event
-const handleDeleteEvent = async (eventId) => {
-  try {
-    await deleteEvent(eventId) // Call the delete method from the repository
-    fetchEvents(currentPage.value, rowsPerPage.value) // Refresh the events after deletion
-  } catch (error) {
-    console.error('Error deleting event:', error)
-  }
-}
-</script>
-
-
 <template>
   <div>
-    <!-- Event Data Table -->
     <DataTable
       :value="events"
       :loading="loading"
@@ -75,17 +9,27 @@ const handleDeleteEvent = async (eventId) => {
       :lazy="true"
       @page="onPage"
       @sort="onSort"
+      @filter="onFilter"
       :sortField="sortField"
       :sortOrder="sortOrder"
+      :filters="filters"
+      aria-label="List of events"
     >
-      <!-- Columns with built-in filters -->
-      <Column field="name" header="Event Name" sortable filter filterPlaceholder="Search by name" />
+      <Column
+        field="name"
+        header="Event Name"
+        sortable
+        filter
+        filterPlaceholder="Search by name"
+        aria-label="Search by event name"
+      />
       <Column
         field="dateTime"
         header="Date & Time"
         sortable
         filter
         filterPlaceholder="Search by date"
+        aria-label="Search by date and time"
       />
       <Column
         field="duration"
@@ -93,6 +37,7 @@ const handleDeleteEvent = async (eventId) => {
         sortable
         filter
         filterPlaceholder="Search by duration"
+        aria-label="Search by duration"
       />
       <Column
         field="location"
@@ -100,6 +45,7 @@ const handleDeleteEvent = async (eventId) => {
         sortable
         filter
         filterPlaceholder="Search by location"
+        aria-label="Search by location"
       />
       <Column
         field="description"
@@ -107,32 +53,96 @@ const handleDeleteEvent = async (eventId) => {
         sortable
         filter
         filterPlaceholder="Search by description"
+        aria-label="Search by description"
       />
-
-      <!-- Conditionally show the Actions column if not public view -->
-      <Column v-if="!publicView" header="Actions" bodyClass="text-center">
+      <Column header="Actions" bodyClass="text-center">
         <template #body="slotProps">
-          <Button
-            label="Delete"
-            icon="pi pi-trash"
-            class="p-button-danger"
-            @click="handleDeleteEvent(slotProps.data.id)"
-          />
+          <div class="d-flex justify-content-center">
+            <button
+              type="button"
+              class="btn btn-warning me-2"
+              @click="$emit('edit', slotProps.data)"
+              aria-label="Edit event {{ slotProps.data.name }}"
+            >
+              <i class="pi pi-pencil" aria-hidden="true"></i> Edit
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="handleDeleteEvent(slotProps.data.id)"
+              aria-label="Delete event {{ slotProps.data.name }}"
+            >
+              <i class="pi pi-trash" aria-hidden="true"></i> Delete
+            </button>
+          </div>
         </template>
       </Column>
     </DataTable>
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from 'vue'
+import { getEvents, deleteEvent } from '@/repository/EventRepository'
+
+const events = ref([])
+const loading = ref(false)
+const totalRecords = ref(0)
+const rowsPerPage = ref(10)
+const currentPage = ref(0)
+const sortField = ref('')
+const sortOrder = ref(1)
+
+// Function to fetch event data
+function fetchData() {
+  loading.value = true
+  getEvents(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value)
+    .then((response) => {
+      events.value = response.data
+      totalRecords.value = response.total
+      loading.value = false
+    })
+    .catch(() => {
+      loading.value = false
+    })
+}
+
+// Lifecycle hook to fetch data when the component is mounted
+onMounted(() => {
+  fetchData()
+})
+
+// Pagination and sorting handlers
+const onPage = (event) => {
+  currentPage.value = event.page
+  fetchData()
+}
+
+const onSort = (event) => {
+  fetchData()
+}
+
+// Delete event handler
+const handleDeleteEvent = async (eventId) => {
+  try {
+    await deleteEvent(eventId)
+    fetchData() // Refresh data after deletion
+  } catch (error) {
+    console.error('Error deleting event:', error)
+  }
+}
+
+// Expose the fetchData function to the parent component
+defineExpose({
+  fetchData
+})
+</script>
+
 <style scoped>
 .text-center {
   text-align: center;
 }
-</style>
-
-
-<style scoped>
-.text-center {
-  text-align: center;
+.me-2 {
+  margin-right: 0.5rem; /* Small gap between buttons */
 }
 </style>
