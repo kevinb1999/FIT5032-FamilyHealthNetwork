@@ -1,18 +1,13 @@
 <template>
   <div>
     <DataTable
+      paginator
+      :rows="5"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      removableSort
       :value="clinics"
       :loading="loading"
-      :rows="rowsPerPage"
-      :paginator="true"
       :total-records="totalRecords"
-      :lazy="true"
-      @page="onPage"
-      @sort="onSort"
-      @filter="onFilter"
-      :sortField="sortField"
-      :sortOrder="sortOrder"
-      :filters="filters"
       aria-label="List of clinics"
     >
       <Column
@@ -88,14 +83,10 @@ const props = defineProps({
 const clinics = ref([])
 const loading = ref(false)
 const totalRecords = ref(0)
-const rowsPerPage = ref(10)
-const currentPage = ref(0)
-const sortField = ref('')
-const sortOrder = ref(1)
 
 function fetchData() {
   loading.value = true
-  getClinics(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value)
+  getClinics()
     .then((response) => {
       clinics.value = response.data
       totalRecords.value = response.total
@@ -110,15 +101,6 @@ onMounted(() => {
   fetchData()
 })
 
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchData()
-}
-
-const onSort = (event) => {
-  fetchData()
-}
-
 const handleDeleteClinic = async (clinicId) => {
   try {
     await deleteClinic(clinicId)
@@ -127,6 +109,10 @@ const handleDeleteClinic = async (clinicId) => {
     console.error('Error deleting clinic:', error)
   }
 }
+
+defineExpose({
+  fetchData
+})
 </script>
 
 <style scoped>
@@ -134,6 +120,6 @@ const handleDeleteClinic = async (clinicId) => {
   text-align: center;
 }
 .me-2 {
-  margin-right: 0.5rem; /* Small gap between buttons */
+  margin-right: 0.5rem;
 }
 </style>

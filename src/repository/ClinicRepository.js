@@ -17,48 +17,23 @@ import {
 const db = getFirestore()
 const clinicsCollection = collection(db, 'clinics') // Collection for clinics
 
-// Fetch clinics with pagination, sorting, and filtering
-export const getClinics = async (
-  page = 0,
-  rows = 10,
-  sortField = '',
-  sortOrder = 1,
-  filters = {}
-) => {
+// Fetch clinics
+export const getClinics = async () => {
   try {
-    let q = query(clinicsCollection)
+    // Fetch all documents from ClinicsCollection
+    const snapshot = await getDocs(clinicsCollection)
 
-    // Apply sorting if sortField is provided
-    if (sortField) {
-      q = query(q, orderBy(sortField, sortOrder === 1 ? 'asc' : 'desc'))
-    }
-
-    // Apply filtering from PrimeVue filters
-    for (const filterField in filters) {
-      const filterValue = filters[filterField].value
-      if (filterValue) {
-        // Apply Firestore where clause for each filter field (assuming "contains" matchMode)
-        q = query(q, where(filterField, '>=', filterValue), where(filterField, '<=', filterValue))
-      }
-    }
-
-    // Pagination logic
-    q = query(q, limit(rows))
-
-    // Execute the query
-    const snapshot = await getDocs(q)
-
-    const clinics = snapshot.docs.map((doc) => ({
+    const Clinics = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data()
     }))
 
     return {
-      data: clinics,
-      total: snapshot.size
+      data: Clinics,
+      total: snapshot.size // Total number of records
     }
   } catch (error) {
-    console.error('Error fetching clinics:', error)
+    console.error('Error fetching Clinics:', error)
     throw error
   }
 }
@@ -92,22 +67,6 @@ export const getClinic = async (clinicId) => {
     }
   } catch (error) {
     console.error('Error getting clinic:', error)
-  }
-}
-
-// Update an existing clinic in Firestore (using a Clinic object)
-export const updateClinic = async (clinic) => {
-  try {
-    const clinicRef = doc(clinicsCollection, clinic.id)
-    await updateDoc(clinicRef, {
-      name: clinic.name,
-      phoneNumber: clinic.phoneNumber,
-      location: clinic.location,
-      description: clinic.description
-    })
-    console.log('Clinic updated successfully')
-  } catch (error) {
-    console.error('Error updating clinic:', error)
   }
 }
 

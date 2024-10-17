@@ -14,9 +14,9 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 id="modalTitle" class="modal-title">
-              {{ isEditing ? 'Edit Newsletter' : 'Add New Newsletter' }}
+              {{ newsletter.id ? 'Edit Newsletter' : 'Add New Newsletter' }}
             </h5>
-            <button type="button" class="btn-close" aria-label="Close" @click="closeModal">
+            <button type="button" class="btn-close" aria-label="Close" @click="$emit('close')">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -55,12 +55,12 @@
                   @change="handleFileUpload"
                   aria-label="Upload an attachment for the newsletter"
                 />
-                <div v-if="isEditing && newsletter.attachmentUrl">
+                <div v-if="newsletter.id && newsletter.attachmentUrl">
                   <a :href="newsletter.attachmentUrl" target="_blank">View current attachment</a>
                 </div>
               </div>
               <button type="submit" class="btn btn-primary" aria-label="Save newsletter">
-                {{ isEditing ? 'Update Newsletter' : 'Save Newsletter' }}
+                {{ newsletter.id ? 'Update Newsletter' : 'Save Newsletter' }}
               </button>
             </form>
           </div>
@@ -74,17 +74,24 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { saveNewsletter, updateNewsletter } from '@/repository/NewsletterRepository'
+import { saveNewsletter } from '@/repository/NewsletterRepository'
 import { getFirestore, collection, doc } from 'firebase/firestore'
+import { uploadAttachment } from '@/repository/FileUploadRepository'
 
 const db = getFirestore()
 
 const props = defineProps({
-  showModal: Boolean,
-  newsletterData: Object
+  newsletterData: {
+    type: Object,
+    default: null
+  },
+  showModal: {
+    type: Boolean,
+    default: false
+  }
 })
 
-const emit = defineEmits(['close', 'refreshTable'])
+const emits = defineEmits(['close', 'refreshTable'])
 
 const newsletter = ref({
   id: null,
@@ -93,42 +100,8 @@ const newsletter = ref({
   attachmentUrl: null,
   dateCreated: new Date()
 })
+
 const file = ref(null)
-
-const isEditing = ref(false)
-
-watch(
-  () => props.newsletterData,
-  (newData) => {
-    if (newData) {
-      newsletter.value = { ...newData }
-      isEditing.value = true
-    } else {
-      resetForm()
-      isEditing.value = false
-    }
-  }
-)
-
-const handleFileUpload = (event) => {
-  file.value = event.target.files[0]
-}
-
-const submitForm = async () => {
-  try {
-    if (isEditing.value) {
-      await updateNewsletter(newsletter.value, file.value)
-    } else {
-      const newsletterRef = doc(collection(db, 'newsletters'))
-      newsletter.value.id = newsletterRef.id
-      await saveNewsletter(newsletter.value, file.value)
-    }
-    closeModal()
-    emit('refreshTable')
-  } catch (error) {
-    console.error('Error submitting newsletter:', error)
-  }
-}
 
 const resetForm = () => {
   newsletter.value = {
@@ -141,10 +114,42 @@ const resetForm = () => {
   file.value = null
 }
 
-const closeModal = () => {
-  resetForm()
-  isEditing.value = false
-  emit('close')
+watch(
+  () => props.newsletterData,
+  (newData) => {
+    if (newData) {
+      newsletter.value = { ...newData }
+    } else {
+      resetForm()
+    }
+  },
+  { immediate: true }
+)
+
+const handleFileUpload = (event) => {
+  file.value = event.target.files[0]
+}
+
+const submitForm = async () => {
+  try {
+    if (!newsletter.value.id) {
+      const newsletterRef = doc(collection(db, 'newsletters'))
+      newsletter.value.id = newsletterRef.id
+    }
+
+    // Upload attachment
+    if (file.value) {
+      newsletter.value.attachmentUrl = await uploadAttachment(file.value, newsletter.value.id)
+    }
+
+    await saveNewsletter(newsletter.value)
+
+    emits('refreshTable')
+    resetForm()
+    emits('close')
+  } catch (error) {
+    console.error('Error submitting newsletter:', error)
+  }
 }
 </script>
 

@@ -22,14 +22,13 @@
               />
             </div>
             <div class="mb-3">
-              <label for="image" class="form-label">Article Image URL</label>
+              <label for="image" class="form-label">Article Image</label>
               <input
-                v-model="article.image"
-                type="url"
+                type="file"
                 class="form-control"
                 id="image"
-                required
-                aria-label="Article image URL"
+                aria-label="Article image"
+                @change="handleFileUpload"
               />
             </div>
             <div class="mb-3">
@@ -42,6 +41,27 @@
                 required
                 aria-label="Article description"
               ></textarea>
+            </div>
+            <div class="mb-3 form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="redirectToArticle"
+                v-model="article.redirectToArticle"
+              />
+              <label class="form-check-label" for="redirectToArticle">
+                Redirect to External Article
+              </label>
+            </div>
+            <div class="mb-3" v-if="article.redirectToArticle">
+              <label for="externalArticleURL" class="form-label">External Article URL</label>
+              <input
+                v-model="article.externalArticleURL"
+                type="url"
+                class="form-control"
+                id="externalArticleURL"
+                aria-label="External Article URL"
+              />
             </div>
             <button type="submit" class="btn btn-primary">
               {{ article.id ? 'Update' : 'Save' }} Article
@@ -58,6 +78,7 @@
 import { ref, watch } from 'vue'
 import { saveArticle } from '@/repository/ArticleRepository'
 import { getFirestore, collection, doc } from 'firebase/firestore'
+import { uploadFile } from '@/repository/FileUploadRepository'
 
 const db = getFirestore()
 
@@ -77,17 +98,24 @@ const emits = defineEmits(['close', 'refreshTable'])
 const article = ref({
   id: null,
   title: '',
-  image: '',
-  description: ''
+  imageURL: '',
+  description: '',
+  redirectToArticle: false,
+  externalArticleURL: ''
 })
+
+const imageFile = ref(null)
 
 const resetForm = () => {
   article.value = {
     id: null,
     title: '',
-    image: '',
-    description: ''
+    imageURL: '',
+    description: '',
+    redirectToArticle: false,
+    externalArticleURL: ''
   }
+  imageFile.value = null
 }
 
 watch(
@@ -102,6 +130,10 @@ watch(
   { immediate: true }
 )
 
+const handleFileUpload = (event) => {
+  imageFile.value = event.target.files[0]
+}
+
 const submitForm = async () => {
   try {
     if (!article.value.id) {
@@ -109,11 +141,14 @@ const submitForm = async () => {
       article.value.id = articleRef.id
     }
 
+    // Upload image if a file is selected
+    if (imageFile.value) {
+      article.value.imageURL = await uploadFile(imageFile.value, article.value.id)
+    }
+
     await saveArticle(article.value)
 
-    // Emit 'refreshTable' event after saving the article
     emits('refreshTable')
-
     resetForm()
     emits('close')
   } catch (error) {

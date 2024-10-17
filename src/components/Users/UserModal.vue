@@ -94,7 +94,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { updateUser } from '@/repository/UserRepository'
+import { saveUser } from '@/repository/UserRepository'
 
 const props = defineProps({
   userData: {
@@ -111,7 +111,7 @@ const emit = defineEmits(['close', 'refreshTable'])
 
 const submitForm = async () => {
   try {
-    await updateUser(userData)
+    await saveUser(userData)
     emit('refreshTable')
     closeModal()
   } catch (error) {

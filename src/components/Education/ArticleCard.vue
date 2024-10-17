@@ -1,5 +1,5 @@
 <script setup>
-import { updateArticle } from '@/repository/ArticleRepository'
+import { saveArticle } from '@/repository/ArticleRepository'
 import Rating from 'primevue/rating'
 import { ref, computed } from 'vue'
 
@@ -8,7 +8,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  image: {
+  imageURL: {
     type: String,
     required: true
   },
@@ -47,7 +47,7 @@ const handleRating = async (star) => {
   const updatedArticle = {
     id: props.id,
     title: props.title,
-    image: props.image,
+    imageURL: props.imageURL,
     content: props.description,
     totalStarCount: props.totalStarCount + star,
     totalReviewCount: props.totalReviewCount + 1,
@@ -55,7 +55,7 @@ const handleRating = async (star) => {
   }
 
   try {
-    await updateArticle(updatedArticle)
+    await saveArticle(updatedArticle)
     console.log('Article updated successfully.')
   } catch (error) {
     console.error('Error updating article:', error)
@@ -69,7 +69,7 @@ const handleRating = async (star) => {
       <h5 id="article-title" class="card-title mb-0">{{ title }}</h5>
     </div>
     <div class="article-img" role="img" aria-label="Article Image">
-      <img v-if="image" :src="image" alt="Image related to the article" class="img-fluid" />
+      <img v-if="imageURL" :src="imageURL" alt="{{ title }}Image" class="img-fluid" />
       <div v-else class="no-image" aria-hidden="true">No Image Available</div>
     </div>
     <div class="card-body">

@@ -6,18 +6,14 @@ import { getSpecialists } from '@/repository/UserRepository'
 const specialists = ref([])
 const loading = ref(false)
 const totalRecords = ref(0)
-const rowsPerPage = ref(10) // Number of rows per page
-const currentPage = ref(0) // Current page number
-const sortField = ref('') // Field to sort by
-const sortOrder = ref(1) // Sort order
 
 // Fetch specialists from the repository with pagination and sorting
-const fetchSpecialists = async (page = 0, rows = 10, sortField = '', sortOrder = 1) => {
+const fetchSpecialists = async () => {
   try {
     loading.value = true
-    const response = await getSpecialists(page, rows, sortField, sortOrder) // Call the repository method
-    specialists.value = response.data // Assign the fetched specialist data
-    totalRecords.value = response.total // Assign the total number of records
+    const response = await getSpecialists()
+    specialists.value = response.data
+    totalRecords.value = response.total
     loading.value = false
   } catch (err) {
     console.error('Error fetching specialists:', err)
@@ -29,16 +25,9 @@ onMounted(() => {
   fetchSpecialists() // Fetch specialists on mount
 })
 
-// Handle pagination events
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchSpecialists(event.page, event.rows, sortField.value, sortOrder.value)
-}
-
-// Handle sorting events
-const onSort = (event) => {
-  fetchSpecialists(currentPage.value, rowsPerPage.value, event.sortField, event.sortOrder)
-}
+defineExpose({
+  fetchData
+})
 </script>
 
 <template>
@@ -47,16 +36,13 @@ const onSort = (event) => {
 
     <!-- Specialists Data Table -->
     <DataTable
+      paginator
+      :rows="5"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      removableSort
       :value="specialists"
       :loading="loading"
-      :rows="rowsPerPage"
-      :paginator="true"
       :total-records="totalRecords"
-      :lazy="true"
-      @page="onPage"
-      @sort="onSort"
-      :sortField="sortField"
-      :sortOrder="sortOrder"
       aria-label="Table listing specialists"
     >
       <Column

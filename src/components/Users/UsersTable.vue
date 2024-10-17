@@ -1,16 +1,13 @@
 <template>
   <div>
     <DataTable
+      paginator
+      :rows="5"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      removableSort
       :value="users"
       :loading="loading"
-      :rows="rowsPerPage"
-      :paginator="true"
       :total-records="totalRecords"
-      :lazy="true"
-      @page="onPage"
-      @sort="onSort"
-      :sortField="sortField"
-      :sortOrder="sortOrder"
       aria-label="List of users"
     >
       <Column
@@ -88,10 +85,6 @@ import UserModal from '@/components/Users/UserModal.vue'
 const users = ref([])
 const loading = ref(false)
 const totalRecords = ref(0)
-const rowsPerPage = ref(10)
-const currentPage = ref(0)
-const sortField = ref('')
-const sortOrder = ref(1)
 const showModal = ref(false)
 const selectedUser = ref(null)
 
@@ -99,7 +92,7 @@ const auth = getAuth()
 
 function fetchData() {
   loading.value = true
-  getUsers(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value)
+  getUsers()
     .then((response) => {
       users.value = response.data
       totalRecords.value = response.total
@@ -113,15 +106,6 @@ function fetchData() {
 onMounted(() => {
   fetchData()
 })
-
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchData()
-}
-
-const onSort = (event) => {
-  fetchData()
-}
 
 const handleDeleteUser = async (userId, authUid) => {
   try {

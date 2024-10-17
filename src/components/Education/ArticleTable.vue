@@ -1,18 +1,13 @@
 <template>
   <div>
     <DataTable
+      paginator
+      :rows="5"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      removableSort
       :value="articles"
       :loading="loading"
-      :rows="rowsPerPage"
-      :paginator="true"
       :total-records="totalRecords"
-      :lazy="true"
-      @page="onPage"
-      @sort="onSort"
-      @filter="onFilter"
-      :sortField="sortField"
-      :sortOrder="sortOrder"
-      :filters="filters"
       aria-label="List of articles"
     >
       <Column
@@ -23,14 +18,17 @@
         filterPlaceholder="Search by title"
         aria-label="Search by article title"
       />
-      <Column
-        field="image"
-        header="Image URL"
-        sortable
-        filter
-        filterPlaceholder="Search by image URL"
-        aria-label="Search by image URL"
-      />
+      <Column header="Image" bodyClass="text-center">
+        <template #body="slotProps">
+          <img
+            :src="slotProps.data.imageURL"
+            alt="Article Image"
+            class="img-thumbnail"
+            style="max-width: 100px; height: auto"
+            aria-label="Image of article {{ slotProps.data.title }}"
+          />
+        </template>
+      </Column>
       <Column
         field="description"
         header="Description"
@@ -72,15 +70,11 @@ import { getArticles, deleteArticle } from '@/repository/ArticleRepository'
 const articles = ref([])
 const loading = ref(false)
 const totalRecords = ref(0)
-const rowsPerPage = ref(10)
-const currentPage = ref(0)
-const sortField = ref('')
-const sortOrder = ref(1)
 
 // Function to fetch article data
 function fetchData() {
   loading.value = true
-  getArticles(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value)
+  getArticles()
     .then((response) => {
       articles.value = response.data
       totalRecords.value = response.total
@@ -95,16 +89,6 @@ function fetchData() {
 onMounted(() => {
   fetchData()
 })
-
-// Pagination and sorting handlers
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchData()
-}
-
-const onSort = (event) => {
-  fetchData()
-}
 
 // Delete article handler
 const handleDeleteArticle = async (articleId) => {

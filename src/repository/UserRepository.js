@@ -17,24 +17,25 @@ const db = getFirestore()
 const usersCollection = collection(db, 'users')
 
 // Fetch users
-export const getUsers = async (page = 0, rows = 10) => {
+export const getUsers = async () => {
   try {
-    let q = query(usersCollection, limit(rows))
-    const snapshot = await getDocs(q)
-    const users = snapshot.docs.map((doc) => ({
+    // Fetch all documents from UsersCollection
+    const snapshot = await getDocs(usersCollection)
+
+    const Users = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data()
     }))
+
     return {
-      data: users,
-      total: snapshot.size
+      data: Users,
+      total: snapshot.size // Total number of records
     }
   } catch (error) {
-    console.error('Error fetching users:', error)
+    console.error('Error fetching Users:', error)
     throw error
   }
 }
-
 // Fetch a user by ID
 export const getUser = async (userId) => {
   try {
@@ -53,24 +54,11 @@ export const getUser = async (userId) => {
 }
 
 // Function to get specialists
-export const getSpecialists = async (
-  page = 0,
-  rows = 10,
-  sortField = 'firstName',
-  sortOrder = 1
-) => {
+export const getSpecialists = async () => {
   try {
     const specialistsCollection = collection(db, 'users')
 
-    // Ensure sortField is valid
-    const validSortField = sortField || 'firstName' // Default to 'firstName' if sortField is empty
-
-    const specialistsQuery = query(
-      specialistsCollection,
-      where('userType', '==', 'specialist'),
-      orderBy(validSortField, sortOrder === 1 ? 'asc' : 'desc'), // Use the valid sort field
-      limit(rows)
-    )
+    const specialistsQuery = query(specialistsCollection, where('userType', '==', 'specialist'))
 
     const snapshot = await getDocs(specialistsQuery)
 

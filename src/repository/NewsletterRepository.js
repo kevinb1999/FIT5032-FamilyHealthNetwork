@@ -20,32 +20,22 @@ const storage = getStorage()
 const newslettersCollection = collection(db, 'newsletters') // Collection for newsletters
 
 // Fetch newsletters with pagination, sorting, and filtering
-export const getNewsletters = async (
-  page = 0,
-  rows = 10,
-  sortField = 'dateCreated',
-  sortOrder = 1
-) => {
+export const getNewsletters = async () => {
   try {
-    let q = query(newslettersCollection, orderBy(sortField, sortOrder === 1 ? 'asc' : 'desc'))
+    // Fetch all documents from NewslettersCollection
+    const snapshot = await getDocs(newslettersCollection)
 
-    // Pagination logic
-    q = query(q, limit(rows))
-
-    // Execute the query
-    const snapshot = await getDocs(q)
-
-    const newsletters = snapshot.docs.map((doc) => ({
+    const Newsletters = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data()
     }))
 
     return {
-      data: newsletters,
-      total: snapshot.size // Total number of records (adjust if needed)
+      data: Newsletters,
+      total: snapshot.size // Total number of records
     }
   } catch (error) {
-    console.error('Error fetching newsletters:', error)
+    console.error('Error fetching Newsletters:', error)
     throw error
   }
 }
@@ -74,34 +64,6 @@ export const saveNewsletter = async (newsletter, file) => {
     console.log('Newsletter saved successfully')
   } catch (error) {
     console.error('Error saving newsletter:', error)
-  }
-}
-
-// Update an existing newsletter in Firestore
-export const updateNewsletter = async (newsletter, file) => {
-  try {
-    let attachmentUrl = newsletter.attachmentUrl // Keep the existing attachment URL by default
-
-    // If a new file is provided, upload it to Firebase Storage
-    if (file) {
-      const fileRef = storageRef(storage, `newsletters/${newsletter.id}/${file.name}`)
-      const snapshot = await uploadBytes(fileRef, file) // Upload file to Firebase Storage
-      attachmentUrl = await getDownloadURL(snapshot.ref) // Get the new file's download URL
-    }
-
-    const newsletterRef = doc(db, 'newsletters', newsletter.id) // Reference to the newsletter document
-
-    // Update the newsletter in Firestore
-    await updateDoc(newsletterRef, {
-      subject: newsletter.subject,
-      body: newsletter.body,
-      attachmentUrl: attachmentUrl, // Update the file URL in Firestore (if changed)
-      dateCreated: newsletter.dateCreated || new Date() // Keep the original date or set it if missing
-    })
-
-    console.log('Newsletter updated successfully')
-  } catch (error) {
-    console.error('Error updating newsletter:', error)
   }
 }
 

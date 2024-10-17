@@ -14,6 +14,7 @@ import App from './App.vue'
 import router from './router'
 
 import DataTable from 'primevue/datatable'
+import DataView from 'primevue/dataview'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 
@@ -33,6 +34,7 @@ app.use(createPinia())
 app.use(router)
 
 app.component('DataTable', DataTable)
+app.component('DataView', DataView)
 app.component('Column', Column)
 app.component('Button', Button)
 

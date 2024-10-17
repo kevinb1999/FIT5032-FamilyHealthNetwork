@@ -1,23 +1,17 @@
 <template>
   <div>
-    <h2 class="text-center">Newsletter List</h2>
-
-    <!-- Accessible DataTable -->
     <DataTable
+      paginator
+      :rows="5"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      removableSort
       :value="newsletters"
       :loading="loading"
-      :rows="rowsPerPage"
-      :paginator="true"
       :total-records="totalRecords"
-      :lazy="true"
-      @page="onPage"
-      @sort="onSort"
-      :sortField="sortField"
-      :sortOrder="sortOrder"
       aria-label="List of newsletters"
     >
       <!-- Radio Button for Selecting a Newsletter -->
-      <Column header="Select">
+      <Column>
         <template #body="slotProps">
           <input
             type="radio"
@@ -61,15 +55,14 @@
         </template>
       </Column>
 
-      <!-- Actions column with accessible buttons -->
       <Column header="Actions" bodyClass="text-center" v-if="!isPublic">
         <template #body="slotProps">
           <div class="d-flex justify-content-center">
             <!-- Edit Button -->
             <button
               type="button"
-              class="btn btn-warning me-2"
-              @click="editNewsletter(slotProps.data)"
+              class="btn btn-warning mr-2"
+              @click="$emit('edit', slotProps.data)"
               aria-label="Edit newsletter {{ slotProps.data.subject }}"
               title="Edit newsletter"
             >
@@ -111,43 +104,20 @@ import { getNewsletters, deleteNewsletter } from '@/repository/NewsletterReposit
 const newsletters = ref([])
 const loading = ref(false)
 const totalRecords = ref(0)
-const rowsPerPage = ref(10)
-const sortField = ref('dateCreated')
-const sortOrder = ref(1)
-const currentPage = ref(0)
 const selectedNewsletter = ref(null)
-const isPublic = ref(false) // Toggle for public views
 
-// Fetch newsletters function
-const fetchNewsletters = async () => {
+// Function to fetch event data
+function fetchData() {
   loading.value = true
-  try {
-    const response = await getNewsletters(
-      currentPage.value,
-      rowsPerPage.value,
-      sortField.value,
-      sortOrder.value
-    )
-    newsletters.value = response.data
-    totalRecords.value = response.total
-  } catch (err) {
-    console.error('Error fetching newsletters:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-// Handle pagination
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchNewsletters()
-}
-
-// Handle sorting
-const onSort = (event) => {
-  sortField.value = event.sortField
-  sortOrder.value = event.sortOrder
-  fetchNewsletters()
+  getNewsletters()
+    .then((response) => {
+      newsletters.value = response.data
+      totalRecords.value = response.total
+      loading.value = false
+    })
+    .catch(() => {
+      loading.value = false
+    })
 }
 
 // Format the date from Firebase Timestamp
@@ -166,20 +136,18 @@ const formatDate = (timestamp) => {
   return 'Invalid date'
 }
 
+onMounted(() => {
+  fetchData()
+})
+
 // Handle deleting a newsletter
 const handleDeleteNewsletter = async (newsletterId) => {
   try {
     await deleteNewsletter(newsletterId)
-    fetchNewsletters() // Refresh data after deletion
+    fetchData() // Refresh data after deletion
   } catch (error) {
     console.error('Error deleting newsletter:', error)
   }
-}
-
-// Handle editing a newsletter
-const editNewsletter = (newsletter) => {
-  // Emit an edit event or handle editing logic
-  console.log('Editing newsletter:', newsletter)
 }
 
 // Function to send newsletter via Firebase Cloud Function
@@ -209,9 +177,8 @@ const sendNewsletter = async () => {
   }
 }
 
-// Lifecycle hook to fetch newsletters on mount
-onMounted(() => {
-  fetchNewsletters()
+defineExpose({
+  fetchData
 })
 </script>
 
@@ -220,6 +187,6 @@ onMounted(() => {
   text-align: center;
 }
 .me-2 {
-  margin-right: 0.5rem; /* Small gap between buttons */
+  margin-right: 0.5rem;
 }
 </style>

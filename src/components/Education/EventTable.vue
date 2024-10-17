@@ -1,18 +1,13 @@
 <template>
   <div>
     <DataTable
-      :value="events"
+      paginator
+      :rows="5"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      removableSort
+      :value="formattedEvents"
       :loading="loading"
-      :rows="rowsPerPage"
-      :paginator="true"
       :total-records="totalRecords"
-      :lazy="true"
-      @page="onPage"
-      @sort="onSort"
-      @filter="onFilter"
-      :sortField="sortField"
-      :sortOrder="sortOrder"
-      :filters="filters"
       aria-label="List of events"
     >
       <Column
@@ -24,7 +19,7 @@
         aria-label="Search by event name"
       />
       <Column
-        field="dateTime"
+        field="dateTimeFormatted"
         header="Date & Time"
         sortable
         filter
@@ -60,7 +55,7 @@
           <div class="d-flex justify-content-center">
             <button
               type="button"
-              class="btn btn-warning me-2"
+              class="btn btn-warning mr-2"
               @click="$emit('edit', slotProps.data)"
               aria-label="Edit event {{ slotProps.data.name }}"
             >
@@ -82,21 +77,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { getEvents, deleteEvent } from '@/repository/EventRepository'
 
 const events = ref([])
 const loading = ref(false)
 const totalRecords = ref(0)
-const rowsPerPage = ref(10)
-const currentPage = ref(0)
-const sortField = ref('')
-const sortOrder = ref(1)
 
 // Function to fetch event data
 function fetchData() {
   loading.value = true
-  getEvents(currentPage.value, rowsPerPage.value, sortField.value, sortOrder.value)
+  getEvents()
     .then((response) => {
       events.value = response.data
       totalRecords.value = response.total
@@ -107,20 +98,25 @@ function fetchData() {
     })
 }
 
+// Format dateTime for better readability
+const formattedEvents = computed(() => {
+  return events.value.map((event) => {
+    const formattedDateTime = new Intl.DateTimeFormat('en-AU', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).format(new Date(event.dateTime))
+    return { ...event, dateTimeFormatted: formattedDateTime }
+  })
+})
+
 // Lifecycle hook to fetch data when the component is mounted
 onMounted(() => {
   fetchData()
 })
-
-// Pagination and sorting handlers
-const onPage = (event) => {
-  currentPage.value = event.page
-  fetchData()
-}
-
-const onSort = (event) => {
-  fetchData()
-}
 
 // Delete event handler
 const handleDeleteEvent = async (eventId) => {
@@ -137,12 +133,3 @@ defineExpose({
   fetchData
 })
 </script>
-
-<style scoped>
-.text-center {
-  text-align: center;
-}
-.me-2 {
-  margin-right: 0.5rem; /* Small gap between buttons */
-}
-</style>
